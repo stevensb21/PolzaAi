@@ -1,0 +1,8 @@
+version: "3.8"
+
+services:
+  python-app:
+    build: ./python-app
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+
