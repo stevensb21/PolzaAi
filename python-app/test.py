@@ -4,192 +4,88 @@ import asyncio
 import requests
 from openai import AsyncOpenAI
 
+# Инициализация клиента (как в проекте)
 client = AsyncOpenAI(
     base_url="https://api.polza.ai/api/v1",
     api_key="ak_XfE3O425uoSp2I3xiLDJXmOX7xGLF3BZ1uXUImXxnpo"
 )
 
-
-BASE_URL = "http://80.87.193.89:8081"
-# ==== реальные функции (инструменты) ====
-
-def call_external_api():
-    """Забирает JSON сотрудников из твоего API"""
-    resp = requests.get(f"{BASE_URL}/api/people", timeout=10)
-    resp.raise_for_status()
-    return resp.json()
-
-def format_employee(employee: dict) -> str:
-    fio = employee.get("full_name", "Неизвестно")
-    position = employee.get("position", "Неизвестно")
-    all_certs = employee.get("all_certificates", [])
-
-    active = []
-    expiring = []
-    expired = []
-    missing = []
-
-    for c in all_certs:
-        assigned = c.get("is_assigned", False)
-        data = c.get("assigned_data")
-        name = c.get("name", "Неизвестно")
-
-        if assigned and data:
-            status = data.get("status")
-            date_str = None
-            if status == 4:  # Действует
-                active.append(f"✅ {name}: Действует до {data.get('assigned_date')}")
-            elif status == 3:  # Скоро истекает
-                expiring.append(f"⚠ {name}: Истекает {data.get('assigned_date')}")
-            elif status == 2:  # Просрочено
-                expired.append(f"⭕ {name}: Просрочено с {data.get('assigned_date')}")
-            else:
-                missing.append(f"❌ {name}")
-        else:
-            missing.append(f"❌ {name}")
-
-    # Если списки пустые, ставим "отсутствуют" только для expiring
-    if not expiring:
-        expiring = ["отсутствуют"]
-
-    # Формируем текст
-    parts = [
-        f"Вот информация по {fio}:",
-        f"Должность: {position}",
-        "Удостоверения:",
-        "Действующие:",
-        *active,
-        "Скоро просрочатся:",
-        *expiring,
-        "Просроченные:",
-        *expired,
-        "Отсутствующие:",
-        *missing
+# Базовый контекст — сюда можно добавлять справочные данные/переменные
+CONTEXT = {
+    "users": {
+        "лариса": {
+            "telegram_id": "8316311496",
+            "alias": ["лариса", "лариса из отдела", "лариса менеджер"],
+        }
+    },
+    "endpoints": {
+        "people_list": "http://80.87.193.89:8081/api/people",
+        "people_data": "http://80.87.193.89:8001/data"
+    },
+    "instructions": [
+        "Отвечай по-русски.",
+        "Помни контекст диалога и ранее упомянутые факты.",
+        "Если собеседник говорит о Ларисе, знай, что это telegram-пользователь с id:8316311496.",
+        "Если просит что-то повторить или уточнить — делай это кратко и по делу.",
     ]
+}
 
-    return "\n".join(parts) 
-
-def create_request(data: dict):
-    """Формирует заявку на сотрудника"""
-    return {
-        "request": "new",
-        "employee": data
-    }
-
-def send_message(request: dict):
-    """Шлёт заявку Ларисе (здесь просто печать для примера)"""
-    print("📩 Отправка Ларисе:", json.dumps(request, ensure_ascii=False, indent=2))
-    return {"status": "ok", "to": "Лариса"}
-
-# ==== описание инструментов для модели ====
-
-tools = [
+# История чата — для сохранения контекста
+chat_history = [
     {
-        "type": "function",
-        "function": {
-            "name": "call_external_api",
-            "description": "Получает JSON со всеми сотрудниками",
-            "parameters": {"type": "object", "properties": {}, "required": []}
-        }
-    },
-    {
-        "type": "function",
-        "function": {
-            "name": "format_employee",
-            "description": "Форматирует данные сотрудника в красивый текст",
-            "parameters": {
-                "type": "object",
-                "properties": {
-                    "employee": {"type": "object", "description": "JSON сотрудника"}
-                },
-                "required": ["employee"]
-            }
-        }
-    },
-    {
-        "type": "function",
-        "function": {
-            "name": "create_request",
-            "description": "Создаёт заявку по сотруднику",
-            "parameters": {
-                "type": "object",
-                "properties": {
-                    "data": {"type": "object", "description": "Данные сотрудника и его документы"}
-                },
-                "required": ["data"]
-            }
-        }
-    },
-    {
-        "type": "function",
-        "function": {
-            "name": "send_message",
-            "description": "Отправляет готовую заявку Ларисе",
-            "parameters": {
-                "type": "object",
-                "properties": {
-                    "request": {"type": "object", "description": "Заявка"}
-                },
-                "required": ["request"]
-            }
-        }
+        "role": "system",
+        "content": (
+            "Ты — вежливый и внимательный ассистент. Общайся как человек, "+
+            "держи краткий и точный стиль. У тебя есть вспомогательный контекст: "
+            + json.dumps(CONTEXT, ensure_ascii=False)
+        ),
     }
 ]
 
-# ==== диспетчер ====
-
-async def run_dispatcher(user_prompt: str):
+async def send_to_ai(messages: list) -> str:
+    """Отправка истории сообщений в модель и возврат ответа ассистента."""
     response = await client.chat.completions.create(
         model="openai/gpt-4.1-mini",
-        messages=[
-            {"role": "system", "content": """
-                Ты — диспетчер.
-                - Если запрос связан с поиском ("покажи", "найди") → вызови call_external_api, выбери подходящих людей, затем вызови format_employee.
-                - Если запрос = "создать заявку" → вызови call_external_api (если нужно), затем create_request, затем send_message.
-                - Если не понял → уточни у пользователя.
-            """},
-            {"role": "user", "content": user_prompt}
-        ],
-        tools=tools
+        messages=messages,
     )
+    return response.choices[0].message.content or ""
 
-    msg = response.choices[0].message
+async def main() -> None:
+    print("Контекстный чат запущен. Команды: /reset — очистить историю, /exit — выход.")
+    while True:
+        user_input = input("👤 Вы: ").strip()
+        if not user_input:
+            continue
 
-    # Если модель решила вызвать tool
-    if msg.tool_calls:
-        for tool_call in msg.tool_calls:
-            func_name = tool_call.function.name
-            args = json.loads(tool_call.function.arguments or "{}")
+        if user_input.lower() in ["/exit", "выход", "quit", "exit"]:
+            print("До связи!")
+            break
 
-            if func_name == "call_external_api":
-                result = call_external_api()
-            elif func_name == "format_employee":
-                result = format_employee(**args)
-            elif func_name == "create_request":
-                result = create_request(**args)
-            elif func_name == "send_message":
-                result = send_message(**args)
-            else:
-                result = {"error": "unknown function"}
+        if user_input.lower() in ["/reset", "reset"]:
+            # Сброс истории, но сохраняем системный контекст
+             
+            global chat_history
+            chat_history = chat_history[:1]
+            print("История очищена.")
+            continue
 
-            # Отправляем результат обратно
-            followup = await client.chat.completions.create(
-                model="openai/gpt-4.1-mini",
-                messages=[
-                    {"role": "user", "content": user_prompt},
-                    msg,
-                    {"role": "tool", "tool_call_id": tool_call.id, "content": json.dumps(result, ensure_ascii=False)}
-                ]
-            )
-            return followup.choices[0].message.content
+        # Добавляем сообщение пользователя
+        chat_history.append({"role": "user", "content": user_input})
 
-    return msg.content
+        # Ограничиваем длину истории, чтобы не раздувать запрос
+        if len(chat_history) > 20:
+            # сохраняем системное сообщение и последние 19 сообщений
+            chat_history[:] = [chat_history[0]] + chat_history[-19:]
 
-# ==== пример запуска ====
-
-async def main():
-    out = await run_dispatcher("Покажи всех Егорова")
-    print("🤖 Ответ модели:\n", out)
+        try:
+            # Запрашиваем ответ модели
+            ai_text = await send_to_ai(chat_history)
+            # Добавляем ответ ассистента в историю
+            chat_history.append({"role": "assistant", "content": ai_text})
+            print("🤖 ИИ:\n" + ai_text)
+        except Exception as e:
+            print(f"❌ Ошибка: {e}")
 
 if __name__ == "__main__":
     asyncio.run(main())
+
