@@ -1,7 +1,11 @@
 import asyncio
 import logging
 import telebot
-from get_jsonAPIai import run_dispatcher
+from ceo import ceo_dispatcher
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
 
 # Настройка логирования
 logging.basicConfig(
@@ -11,7 +15,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # Токен вашего бота
-TOKEN = "7934916395:AAFKUivVycRo_sf2azOv4oJUVaslRJ1j1YU"
+TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 
 # Создаем экземпляр бота
 bot = telebot.TeleBot(TOKEN)
@@ -49,8 +53,13 @@ def handle_message(message):
     try:
         # Создаем асинхронную функцию для обработки
         async def process_request():
-            # Отправляем сообщение в run_dispatcher
-            result = await run_dispatcher(user_message)
+            # Создаем историю сообщений для ceo_dispatcher
+            messages = [
+                {"role": "user", "content": user_message}
+            ]
+            
+            # Отправляем сообщение в ceo_dispatcher
+            result = await ceo_dispatcher(messages)
             
             # Отправляем результат (уже отформатированный)
             bot.edit_message_text(

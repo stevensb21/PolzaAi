@@ -6,12 +6,15 @@ from openai import AsyncOpenAI
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
 from get_jsonAPIai import call_external_api, sort_employee
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # Инициализация клиента OpenAI с обработкой ошибок
 try:
     client = AsyncOpenAI(
         base_url="https://api.polza.ai/api/v1",
-        api_key="ak_XfE3O425uoSp2I3xiLDJXmOX7xGLF3BZ1uXUImXxnpo"
+        api_key=os.getenv("POLZA_AI_TOKEN")
     )
 except Exception as e:
     print(f"❌ КРИТИЧЕСКАЯ ОШИБКА: Не удалось инициализировать OpenAI клиент: {e}")
@@ -19,25 +22,17 @@ except Exception as e:
 
 BASE_URL = "http://80.87.193.89:8081"
 
-chat_history = [
-    {
-        "role": "system",
-        "content": (
-            "Ты — вежливый и внимательный ассистент. Общайся как человек, "+
-            "держи краткий и точный стиль."
-        ),
-    }
-]
+chat_history_order = []
 
 tools = [
-    {
-        "type": "function",
-        "function": {
-            "name": "call_external_api",
-            "description": "Получает JSON со всеми сотрудниками",
-            "parameters": {"type": "object", "properties": {}, "required": []}
-        }
-    },
+    # {
+    #     "type": "function",
+    #     "function": {
+    #         "name": "call_external_api",
+    #         "description": "Получает JSON со всеми сотрудниками",
+    #         "parameters": {"type": "object", "properties": {}, "required": []}
+    #     }
+    # },
     {
         "type": "function",
         "function": {
@@ -83,7 +78,7 @@ tools = [
     }
 ]
 
-async def makeOrderFormat(employee_name, certificate_name):
+async def makeOrderFormat(messages, employee_name, certificate_name):
     """Форматирует заявку в JSON формате"""
     # Сначала получаем данные сотрудника
     json_people = await sort_employee(employee_name)
@@ -105,6 +100,20 @@ async def makeOrderFormat(employee_name, certificate_name):
         print(f"❌ Ошибка API: {json_people['error']}")
         return None
     
+    # Проверяем, есть ли данные сотрудника
+    has_employee_data = False
+    if isinstance(json_people, dict):
+        if 'data' in json_people and json_people['data']:
+            has_employee_data = True
+        elif 'full_name' in json_people:
+            has_employee_data = True
+    elif isinstance(json_people, list) and len(json_people) > 0:
+        has_employee_data = True
+    
+    if not has_employee_data:
+        print(f"🔍 Сотрудник '{employee_name}' не найден, создаем нового")
+        return await createNewEmployee(employee_name, certificate_name, messages)
+    
     # Initialize all fields to "null"
     employee_full_name = employee_name
     snils = "null"
@@ -112,8 +121,6 @@ async def makeOrderFormat(employee_name, certificate_name):
     position = "null"
     birth_date = "null"
     phone = "null"
-    
-
     
     if isinstance(json_people, dict) and 'data' in json_people:
         data = json_people['data']
@@ -126,6 +133,15 @@ async def makeOrderFormat(employee_name, certificate_name):
             birth_date = data[0].get('birth_date', "null")
             phone = data[0].get('phone', "null")
             print(f"DEBUG: Extracted from data[0]: {employee_full_name}, {snils}, {inn}")
+        elif isinstance(data, dict):
+            # data is a dict with employee data directly
+            employee_full_name = data.get('full_name', employee_name)
+            snils = data.get('snils', "null")
+            inn = data.get('inn', "null")
+            position = data.get('position', "null")
+            birth_date = data.get('birth_date', "null")
+            phone = data.get('phone', "null")
+            print(f"DEBUG: Extracted from data dict: {employee_full_name}, {snils}, {inn}")
     elif isinstance(json_people, dict) and 'full_name' in json_people:
         # json_people is a dict with employee data directly
         print(f"DEBUG: json_people is employee data dict")
@@ -171,11 +187,11 @@ async def makeOrderFormat(employee_name, certificate_name):
         "status": "pending"
     }
     
+    print(f"DEBUG: Сформированный order_json: {order_json}")
     return order_json
 
 async def clarification(messages, order_json):
     """Уточняет данные у пользователя"""
-   
     response = await client.chat.completions.create(
         model="openai/gpt-4.1-mini",
         messages=[
@@ -186,7 +202,23 @@ async def clarification(messages, order_json):
                     Проверь все ли данные в employee есть и если нет, уточни у пользователя запиши сообщение в поле message.
                     Если все данные есть, верни order_json, но измени в нем type на "readyorder".
                     Если данные неполные, верни order_json, но измени в нем type на "clarification".
-
+                    В конечном итоге у тебя должен получиться вот такоц JSON:
+                         {{
+                            "type": "clarification или readyorder",
+                            "employee": {{
+                                "full_name": "ФИО сотрудника",
+                                "snils": "СНИЛС сотрудника",
+                                "inn": "ИНН сотрудника",
+                                "position": "Должность сотрудника",
+                                "birth_date": "Дата рождения сотрудника",
+                                "phone": "Телефон сотрудника"
+                            }},
+                            "certificate": [
+                                "Название удостоверения"
+                            ],
+                            "status": "new_employee",
+                            "message": "Сообщение для уточнения данных, если они неполные"
+                        }}
                     ОБЯЗАТЕЛЬНО: возвращай только order_json, ничего больше и в формате JSON."""},
             {"role": "user", "content": f"Уточни данные у пользователя: {messages}"}
         ]
@@ -199,7 +231,6 @@ async def clarification(messages, order_json):
     print(f"Ответ ИИ clarification: {msg.content}")
     
     return msg.content
-
 
 def format_message(message):
     """Форматирует сообщение"""
@@ -224,56 +255,195 @@ def format_message(message):
         \n СНИЛС: {message.get("employee", {}).get("snils")} \n ИНН: {message.get("employee", {}).get("inn")} \n Должность: {message.get("employee", {}).get("position")} \n Дата рождения: {formatted_date} \n Телефон: {message.get("employee", {}).get("phone")} """
     }
 
-async def run_dispatcher(messages):
+async def createNewEmployee(employee_name, certificate_name, messages):
+    """Создает нового сотрудника, анализируя историю чата с помощью ИИ"""
+    try:
+        print(f"👤 Анализирую историю чата для создания нового сотрудника: {employee_name}")
+        
+        # Системное сообщение для ИИ
+        system_message = {
+            "role": "system",
+            "content": f"""Ты — помощник для создания нового сотрудника.
+            
+            Анализируй историю чата и извлекай информацию о сотруднике '{employee_name}'.
+            
+            Ищи в сообщениях:
+            - СНИЛС 
+            - ИНН 
+            - Должность
+            - Дата рождения 
+            - Телефон 
+            
+            Если информация найдена, заполни соответствующие поля.
+            Если информации нет, оставь "null".
+            
+            ВАЖНО: возвращай только JSON в таком формате:
+            {{
+                "type": "clarification",
+                "employee": {{
+                    "full_name": "{employee_name}",
+                    "snils": "найденный_снилс_или_null",
+                    "inn": "найденный_инн_или_null",
+                    "position": "найденная_должность_или_null",
+                    "birth_date": "найденная_дата_или_null",
+                    "phone": "найденный_телефон_или_null"
+                }},
+                "certificate": {certificate_name},
+                "status": "new_employee",
+            }}
+
+            Не задавай лишние вопросы, только уточни данные.
+            """
+        }
+        
+        # Добавляем системное сообщение к истории
+        messages_with_system = [system_message] + messages
+        
+        print(f"🤖 Отправляю запрос к ИИ для анализа истории чата")
+        
+        response = await client.chat.completions.create(
+            model="openai/gpt-4.1-mini",
+            messages=messages_with_system,
+            temperature=0.1
+        )
+        
+        if not response.choices or not response.choices[0].message:
+            return None
+        
+        ai_response = response.choices[0].message.content
+        print(f"🤖 Ответ ИИ для создания сотрудника: {ai_response}")
+        
+        try:
+            # Парсим ответ ИИ
+            new_employee = json.loads(ai_response)
+            
+            # Проверяем, что все обязательные поля есть
+            if "type" in new_employee and "employee" in new_employee:
+                print(f"✅ Новый сотрудник создан с помощью ИИ: {json.dumps(new_employee, indent=2, ensure_ascii=False)}")
+                return new_employee
+            else:
+                print("❌ ИИ вернул неполную структуру")
+                return None
+                
+        except json.JSONDecodeError as e:
+            print(f"❌ Ошибка парсинга JSON от ИИ: {e}")
+            return None
+        
+    except Exception as e:
+        error_msg = f"❌ Ошибка при создании нового сотрудника: {str(e)}"
+        print(error_msg)
+        return None
+
+def addToDatabase(order_json):
+    """Добавляет заказ в базу данных"""
+    try:
+        import requests
+        
+        # Извлекаем данные из заказа
+        employee = order_json.get("employee", {})
+        certificate = order_json.get("certificate", [])
+        
+        # Формируем данные для API
+        api_data = {
+            "full_name": employee.get("full_name", ""),
+            "position": employee.get("position", ""),
+            "phone": employee.get("phone", ""),
+            "snils": employee.get("snils", ""),
+            "inn": employee.get("inn", ""),
+            "birth_date": employee.get("birth_date", ""),
+            "status": "В ожидании"
+            # "photo": "@https://us1.api.pro-talk.ru/get_image/fa165d7a-2322-4081-9068-c12ce86a8bf5.jpg"
+        }
+        
+        # Очищаем пустые значения
+        api_data = {k: v for k, v in api_data.items() if v and v != "null"}
+        
+        print(f"📤 Отправляю данные в API: {json.dumps(api_data, indent=2, ensure_ascii=False)}")
+        
+        # Отправляем POST запрос
+        response = requests.post(
+            "http://80.87.193.89:8081/api/people",
+            headers={
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            },
+            json=api_data,
+            timeout=10
+        )
+        
+        if response.status_code == 200 or response.status_code == 201:
+            print("✅ Заказ успешно добавлен в базу данных")
+            return f"✅ Заказ для {employee.get('full_name')} успешно добавлен в базу данных со статусом 'В ожидании'"
+        else:
+            print(f"❌ Ошибка API: {response.status_code} - {response.text}")
+            return f"❌ Ошибка при добавлении заказа: {response.status_code} - {response.text}"
+            
+    except Exception as e:
+        error_msg = f"❌ Ошибка при отправке заказа в базу данных: {str(e)}"
+        print(error_msg)
+        return error_msg
+
+async def order_dispatcher(messages, chat_history):
     """Запускает диспетчер на основе истории чата"""
+    print(f"\n\n\nchat_history: {chat_history_order}\n\n\n messages: {messages}\n\n\n")
     try:
         if not client:
             return "❌ Ошибка: OpenAI клиент не инициализирован"
             
-        print(f"🤖 Отправляю запрос к ИИ (сообщений: {len(messages)})")
-        
-        
-        
 
-        
+        print(f"🤖 Отправляю запрос к ИИ (сообщений: {len(messages)})")
+        global order_chat_history
         # Добавляем системное сообщение в начало истории
         messages_with_system = [
-            {"role": "system", "content": """
-            Ты — помощник для заказа удостоверений.
+            {"role": "system", "content": f"""
+                Ты — помощник для заказа удостоверений.
+
+                ВАЖНО: Ты ДОЛЖЕН вызывать функции, а не просто отвечать текстом!
+                У тебя есть история чата: {json.dumps(chat_history, ensure_ascii=False)}. 
+                Пользователь отвечает: '{messages[-1]['content']}'. 
+                Тебе нужно понять из истории, какой заказ уточняется, и передать его в order_data.
 
                 У тебя есть 2 функции:
-                1. clarification(order_data) — уточнение данных заказа
-                2. makeOrderFormat(employee_name, certificate_name) — создание нового заказа
+                1. makeOrderFormat(employee_name, certificate_name) — создание нового заказа
+                2. clarification(order_data) — уточнение данных заказа
 
-                Правила:
+                ПРАВИЛА:
+                - Если пользователь предоставляет ПОЛНЫЕ данные сотрудника (ФИО, СНИЛС, ИНН, телефон, дата рождения, должность) и просит удостоверение → вызывай makeOrderFormat()
+                - Если пользователь отвечает на вопрос (например, "монтажник" на вопрос о должности) → вызывай clarification() с данными из предыдущего заказа
+                - Если пользователь уточняет детали существующего заказа → вызывай clarification()
+                - НИКОГДА не отвечай обычным текстом, ВСЕГДА используй функции!
+
                 - Если пользователь хочет СДЕЛАТЬ НОВЫЙ ЗАКАЗ → вызывай makeOrderFormat().
-                • Обязательно верни JSON в формате:
-                    {
-                    \"employee_name\": \"ФИО сотрудника\",
-                    \"certificate_name\": [\"Название удостоверения\"]
-                    }
-                • Всегда используй массив для certificate_name, даже если удостоверение одно.
+                    • Обязательно верни JSON в формате:
+                        {{
+                        "employee_name": "ФИО сотрудника",
+                        "certificate_name": ["Название удостоверения"]
+                        }}
+                    • Всегда используй массив для certificate_name, даже если удостоверение одно.
 
-                - Если пользователь уточняет детали уже существующего заказа (например: \"а ещё добавь ПБО\", \"не Егоров, а Егоров Иван\", \"нужно 2 удостоверения\") → вызывай clarification().
-                • В clarification() всегда передавай:
-                    - messages → текст уточнения пользователя
-                    - order_data → JSON заказа, который нужно уточнить
+                    - Если пользователь уточняет детали уже существующего заказа (например: "а ещё добавь ПБО", "не Егоров, а Егоров Иван", "нужно 2 удостоверения") → вызывай clarification().
+                    • В clarification() всегда передавай:
+                        - messages → текст уточнения пользователя
+                        - order_data → JSON заказа, который нужно уточнить (по истории чата в chat_history тебе нужно понять какой заказ нужно уточнить) Тебе обязательно нужно передавать этот аргумент в функцию
+                        заказ выглядит в виде json примерно вот так {{'type': 'ПРИМЕР', 'employee': {{'full_name': 'ПРИМЕР', 'snils': 'ПРИМЕР', 'inn': 'ПРИМЕР', 'position': None, 'birth_date': 'ПРИМЕР', 'phone': 'ПРИМЕР'}}, 'certificate': ['ПРИМЕР'], 'status': 'ПРИМЕР', 'message': 'ПРИМЕР'}}
+                - ЖЕСТКОЕ ПРАВИЛО: отвечай только JSON в формате:
 
-                - Если сообщение НЕ относится к заказу и не содержит ни уточнения, ни создания → отвечай по контексту, но НЕ вызывай никакую функцию.
-
+                - Если пользователь хочет СДЕЛАТЬ НОВЫЙ ЗАКАЗ → вызывай makeOrderFormat().
                 Примеры:
-                Пользователь: \"заказать Егорову ЭБ\"
-                Ответ: makeOrderFormat({\"employee_name\": \"Егоров\", \"certificate_name\": [\"ЭБ\"]})
+                Пользователь: "Сабиров Рустем, СНИЛС 195-071-028-66, нужно удостоверение высоты"
+                Ответ: makeOrderFormat({{"employee_name": "Сабиров Рустем Рафисович", "certificate_name": ["удостоверение высоты"]}})
 
-                Пользователь: \"и ещё добавь БСИЗ\"
-                Ответ: clarification(messages=\"и ещё добавь БСИЗ\", order_data={\"employee_name\": \"Егоров\", \"certificate_name\": [\"ЭБ\"]})
+                Пользователь: "заказать Егорову ЭБ"
+                Ответ: makeOrderFormat({{"employee_name": "Егоров", "certificate_name": ["ЭБ"]}})
 
-                Пользователь: \"нужно заказать ВИТР для Иванова\"
-                Ответ: makeOrderFormat({\"employee_name\": \"Иванов\", \"certificate_name\": [\"ВИТР\"]})
+                Пользователь: "и ещё добавь БСИЗ"
+                Ответ: clarification(messages="и ещё добавь БСИЗ", order_data={{"employee_name": "Егоров", "certificate_name": ["ЭБ"]}})
 
-                Пользователь: \"не Егоров, а Егоров Иван Иванович\"
-                Ответ: clarification(messages=\"не Егоров, а Егоров Иван Иванович\", order_data={\"employee_name\": \"Егоров\", \"certificate_name\": [\"ЭБ\"]})
-            """}
+                Пользователь: "монтажник" (ответ на вопрос о должности)
+                Ответ: clarification(messages="монтажник", order_data={{"employee_name": "Сабиров Рустем Рафисович", "certificate_name": ["обучение для работы на лесах"]}})
+
+                ВАЖНО: Всегда используй массив для certificate_name, даже если удостоверение одно!
+                """}
         ]
         
         # Добавляем всю историю чата
@@ -283,13 +453,12 @@ async def run_dispatcher(messages):
         print(f"DEBUG: Первое сообщение: {messages_with_system[0]}")
         print(f"DEBUG: Последнее сообщение: {messages_with_system[-1]}")
         
-        
         response = await client.chat.completions.create(
-                model="openai/gpt-4.1-mini",
-                messages=messages_with_system,
-                tools=tools,
-                tool_choice="auto"
-            )
+            model="openai/gpt-4.1-mini",
+            messages=messages_with_system,
+            tools=tools,
+            tool_choice="auto"
+        )
         
 
         if not response.choices or not response.choices[0].message:
@@ -307,32 +476,17 @@ async def run_dispatcher(messages):
                 tool_name = tool_call.function.name
                 print(f"🔧 Вызываю инструмент: {tool_name}")
                 
-                if tool_name == "call_external_api":
-                    # Получаем всех сотрудников
-                    result = call_external_api()
-                    return f"📋 Список всех сотрудников:\n{result}"
-                    
-                elif tool_name == "sort_employee":
-                    # Ищем конкретного сотрудника
-                    try:
-                        args = json.loads(tool_call.function.arguments)
-                        employee_filter = args.get("employee", "")
-                        if employee_filter:
-                            result = await sort_employee(employee_filter)
-                            return f"🔍 Результат поиска '{employee_filter}':\n{result}"
-                        else:
-                            return "❌ Ошибка: не указан параметр employee для поиска"
-                    except json.JSONDecodeError:
-                        return "❌ Ошибка: неверные аргументы для sort_employee"
+                
                         
-                elif tool_name == "makeOrderFormat":
+                if tool_name == "makeOrderFormat":
                     # Сформируем заявку
                     try:
                         args = json.loads(tool_call.function.arguments)
                         employee_name = args.get("employee_name", "")
                         certificate_name = args.get("certificate_name", "")
                         print(f"DEBUG: employee_name: {employee_name}, certificate_name: {certificate_name}")
-                        result = await makeOrderFormat(employee_name, certificate_name)
+                        result = await makeOrderFormat(messages, employee_name, certificate_name)
+                        print(f"DEBUG: result makeOrderFormat from order_dispatcher: {result}")
                         if result is None:
                             return "❌ Ошибка: не удалось сформировать заявку"
                         if result.get("type") == "clarification":
@@ -341,26 +495,37 @@ async def run_dispatcher(messages):
                                 try:
                                     parsed_result = json.loads(result)
                                     if parsed_result.get("type") == "clarification":
+                                        chat_history_order.append({"role": "assistant", "content": json.dumps(parsed_result, ensure_ascii=False)})
                                         return parsed_result.get("message")
                                     else:
+                                        addToDatabase(parsed_result)
+                                        chat_history_order.append({"role": "assistant", "content": json.dumps(format_message(parsed_result), ensure_ascii=False)})
                                         return format_message(parsed_result).get("message")
+                                        
                                 except json.JSONDecodeError:
                                     return f"❌ Ошибка парсинга JSON от clarification: {result}"
                             else:
                                 if result.get("type") == "clarification":
+                                    chat_history_order.append({"role": "assistant", "content": json.dumps(result, ensure_ascii=False)})
                                     return result.get("message")
                                 else:
+                                    addToDatabase(result)
+                                    chat_history_order.append({"role": "assistant", "content": json.dumps(format_message(result), ensure_ascii=False)})
                                     return format_message(result).get("message")
                         else:
-                            return f"🔍 Сформированная заявка:\n{result}"
+                            addToDatabase(result)
+                            chat_history_order.append({"role": "assistant", "content": json.dumps(format_message(result), ensure_ascii=False)})
+                            return format_message(result).get("message")
                     except json.JSONDecodeError:
                         return "❌ Ошибка: неверные аргументы для makeOrderFormat"
                         
                 elif tool_name == "clarification":
                     # Уточняем данные
                     try:
+                        print(f"🔧 Аргументы для clarification: {tool_call.function}")
                         args = json.loads(tool_call.function.arguments)
                         order_data = args.get("order_data", {})
+                        
                         if order_data:
                             result = await clarification(messages, order_data)
                             # Парсим результат clarification если это строка
@@ -368,17 +533,24 @@ async def run_dispatcher(messages):
                                 try:
                                     parsed_result = json.loads(result)
                                     if parsed_result.get("type") == "clarification":
+                                        chat_history_order.append({"role": "assistant", "content": json.dumps(parsed_result, ensure_ascii=False)})
                                         return parsed_result.get("message")
                                     else:
+                                        addToDatabase(parsed_result)
+                                        chat_history_order.append({"role": "assistant", "content": json.dumps(parsed_result, ensure_ascii=False)})
                                         return format_message(parsed_result).get("message")
                                 except json.JSONDecodeError:
                                     return f"❌ Ошибка парсинга JSON от clarification: {result}"
                             else:
                                 if result.get("type") == "clarification":
+                                    chat_history_order.append({"role": "assistant", "content": json.dumps(result, ensure_ascii=False)})
                                     return result.get("message")
                                 else:
+                                    addToDatabase(result)
+                                    chat_history_order.append({"role": "assistant", "content": json.dumps(result, ensure_ascii=False)})
                                     return format_message(result).get("message")
                         else:
+                        
                             return "❌ Ошибка: не указаны данные заказа для уточнения"
                     except json.JSONDecodeError:
                         return "❌ Ошибка: неверные аргументы для clarification"
@@ -400,9 +572,11 @@ async def run_dispatcher(messages):
                 message = response_data.get("message")
                 if not message and "employee" in response_data:
                     message = response_data["employee"].get("message", "Нужно уточнить данные")
+                chat_history_order.append({"role": "assistant", "content": json.dumps(response_data, ensure_ascii=False)})
                 return message or "Нужно уточнить данные"
             elif response_data.get("type") == "readyorder":
                 # Заказ готов, возвращаем форматированное сообщение
+                chat_history_order.append({"role": "assistant", "content": json.dumps(response_data, ensure_ascii=False)})
                 return f"🔍 Сформированная заявка:\n{json.dumps(response_data, indent=4, ensure_ascii=False)}"
             
             # Если это не уточнение, проверяем на новый заказ
@@ -421,11 +595,13 @@ async def run_dispatcher(messages):
                 
                 # Проверяем что есть данные сотрудника
                 if not json_people or (isinstance(json_people, list) and len(json_people) == 0):
+                    chat_history_order.append({"role": "assistant", "content": f"❌ Сотрудник '{employee_name}' не найден в базе данных"})
                     return f"❌ Сотрудник '{employee_name}' не найден в базе данных"
                 
-                order = await makeOrderFormat(employee_name, certificate_name)
+                order = await makeOrderFormat(messages, employee_name, certificate_name)
                 
                 if order is None:
+                    chat_history_order.append({"role": "assistant", "content": "❌ Ошибка: не удалось сформировать заявку"})
                     return "❌ Ошибка: не удалось сформировать заявку"
                 
                 # Если нужна уточнение данных, возвращаем сообщение пользователю
@@ -451,72 +627,51 @@ async def run_dispatcher(messages):
                 
         except json.JSONDecodeError as e:
             return f"❌ Ошибка парсинга JSON: {str(e)}\nОтвет ИИ: {msg.content}"
-        except Exception as e:
-            return f"❌ Ошибка обработки данных: {str(e)}"
-        
     except Exception as e:
-        error_msg = f"❌ КРИТИЧЕСКАЯ ОШИБКА в run_dispatcher: {str(e)}"
+        error_msg = f"❌ КРИТИЧЕСКАЯ ОШИБКА в order_dispatcher: {str(e)}"
         print(error_msg)
         return error_msg
 
-
-async def main() -> None:
-    """Главная функция с надежной обработкой ошибок"""
-    print("Контекстный чат запущен. Команды: /reset — очистить историю, /exit — выход.")
+async def connect_dispatcher(messages, ceo_chat_history):
+    """Запускает диспетчер на основе истории чата"""
+    global chat_history_order
+    chat_history = ceo_chat_history.copy() if isinstance(ceo_chat_history, list) else []
+    chat_history.extend(chat_history_order)
+    result = await order_dispatcher(messages, chat_history)
     
-    global chat_history
-    
-    while True:
-        try:
-            user_input = input("👤 Вы: ").strip()
-            if not user_input:
-                continue
-
-            if user_input.lower() in ["/exit", "выход", "quit", "exit"]:
-                print("До связи!")
-                break
-
-            if user_input.lower() in ["/reset", "reset"]:
-                # Сохраняем только системное сообщение
-                chat_history = chat_history[:1]
-                print("История очищена.")
-                continue
-
-            # Добавляем сообщение пользователя в историю
-            chat_history.append({"role": "user", "content": user_input})
-            
-            # Ограничиваем размер истории
-            if len(chat_history) > 20:
-                chat_history = [chat_history[0]] + chat_history[-19:]
-
-            try:
-                # Отправляем всю историю в диспетчер
-                ai_text = await run_dispatcher(chat_history)
-                
-                # Добавляем ответ ассистента в историю
-                chat_history.append({"role": "assistant", "content": ai_text})
-                
-                # Проверяем, является ли ответ JSON объектом
-                if isinstance(ai_text, dict):
-                    print("🤖 ИИ:\n" + json.dumps(ai_text, indent=4, ensure_ascii=False))
-                else:
-                    print("🤖 ИИ:\n" + ai_text)
-            except Exception as e:
-                error_msg = f"❌ Ошибка при обработке запроса: {str(e)}"
-                print(error_msg)
-                # Добавляем ошибку в историю, чтобы ИИ знал о проблеме
-                chat_history.append({"role": "assistant", "content": error_msg})
-                
-        except KeyboardInterrupt:
-            print("\n\n👋 Прерывание пользователем. До свидания!")
-            break
-        except Exception as e:
-            print(f"❌ КРИТИЧЕСКАЯ ОШИБКА в главном цикле: {str(e)}")
-            # Пытаемся продолжить работу
-            continue
-
-if __name__ == "__main__":
-    try:
-        asyncio.run(main())
-    except Exception as e:
-        print(f"❌ КРИТИЧЕСКАЯ ОШИБКА при запуске: {str(e)}")
+    # Анализируем результат и определяем тип
+    if isinstance(result, str):
+        # Если результат - строка, проверяем содержимое
+        if "Заказ оформлен" in result or "успешно добавлен" in result:
+            return {
+                "type": "orderready",
+                "message": result,
+                "chat_history_order": json.dumps(chat_history_order, indent=4, ensure_ascii=False)
+            }
+        else:
+            return {
+                "type": "orderclar",
+                "message": result,
+                "chat_history_order": json.dumps(chat_history_order, indent=4, ensure_ascii=False)
+            }
+    elif isinstance(result, dict):
+        # Если результат - словарь, проверяем поле type
+        if result.get("type") == "readyorder":
+            return {
+                "type": "orderready",
+                "message": result.get("message", str(result)),
+                "chat_history_order": json.dumps(chat_history_order, indent=4, ensure_ascii=False)
+            }
+        else:
+            return {
+                "type": "orderclar",
+                "message": result.get("message", str(result)),
+                "chat_history_order": json.dumps(chat_history_order, indent=4, ensure_ascii=False)
+            }
+    else:
+        # По умолчанию считаем, что нужна уточнение
+        return {
+            "type": "orderclar",
+            "message": str(result),
+            "chat_history_order": json.dumps(chat_history_order, indent=4, ensure_ascii=False)
+        }
