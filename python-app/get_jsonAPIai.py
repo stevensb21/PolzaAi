@@ -6,6 +6,7 @@ from openai import AsyncOpenAI
 from dotenv import load_dotenv
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
+from logger import search as search_log, debug, info, error, critical, success, api, log_function_entry, log_function_exit
 
 load_dotenv()
 
@@ -19,11 +20,11 @@ try:
         api_key=os.getenv("POLZA_AI_TOKEN")
     )
 except Exception as e:
-    print(f"❌ КРИТИЧЕСКАЯ ОШИБКА: Не удалось инициализировать OpenAI клиент: {e}")
+    critical(f"Не удалось инициализировать OpenAI клиент: {e}")
     client = None
 
-BASE_URL = "http://80.87.193.89:8081"
-
+# BASE_URL = "http://80.87.193.89:8081"
+BASE_URL = "http://labor.tetrakom-crm-miniapp.ru"
 
 # Базовый контекст — сюда можно добавлять справочные данные/переменные
 # CONTEXT = {
@@ -46,26 +47,21 @@ BASE_URL = "http://80.87.193.89:8081"
 # }
 
 # История чата — для сохранения контекста
-chat_history = [
-    {
-        "role": "system",
-        "content": (
-            "Ты — вежливый и внимательный ассистент. Общайся как человек, "+
-            "держи краткий и точный стиль. У тебя есть вспомогательный контекст: "
-            # + json.dumps(CONTEXT, ensure_ascii=False)
-        ),
-    }
-]
+chat_history_search = [ ]
 
 def format_employee_info(employee_json):
     """Форматирует информацию о сотруднике с надежной обработкой ошибок"""
+   
     try:
         # если пришла строка — пробуем распарсить
         if isinstance(employee_json, str):
             try:
                 employee_json = json.loads(employee_json)
             except json.JSONDecodeError as e:
-                return f"❌ Ошибка парсинга JSON в format_employee_info: {str(e)}\nПолученная строка: {employee_json[:100]}..."
+                error_msg = f"❌ Ошибка парсинга JSON в format_employee_info: {str(e)}\nПолученная строка: {employee_json[:100]}..."
+                error(error_msg)
+                log_function_exit("format_employee_info", error=error_msg)
+                return error_msg
 
         # если есть корневой ключ data → работаем с ним
         if isinstance(employee_json, dict) and "data" in employee_json:
@@ -74,19 +70,29 @@ def format_employee_info(employee_json):
         # Если список сотрудников
         if isinstance(employee_json, list):
             if not employee_json:
+                log_function_exit("format_employee_info", result="⚠ Нет сотрудников по запросу")
                 return "⚠ Нет сотрудников по запросу"
             try:
-                return "\n\n".join(format_employee_info(emp) for emp in employee_json)
+                formatted_list = "\n\n".join(format_employee_info(emp) for emp in employee_json)
+             
+                return formatted_list
             except Exception as e:
-                return f"❌ Ошибка обработки списка сотрудников в format_employee_info: {str(e)}"
+                error_msg = f"❌ Ошибка обработки списка сотрудников в format_employee_info: {str(e)}"
+                error(error_msg)
+                log_function_exit("format_employee_info", error=error_msg)
+                return error_msg
 
         # Если это сообщение вместо списка
         if isinstance(employee_json, dict) and "message" in employee_json:
+            log_function_exit("format_employee_info", result=employee_json.get("message", "нет сотрудников"))
             return employee_json.get("message", "нет сотрудников")
 
         # Один сотрудник
         if not isinstance(employee_json, dict):
-            return f"❌ Неверный формат данных сотрудника в format_employee_info: ожидался dict, получен {type(employee_json)}"
+            error_msg = f"❌ Неверный формат данных сотрудника в format_employee_info: ожидался dict, получен {type(employee_json)}"
+            error(error_msg)
+            
+            return error_msg
         
         emp = employee_json
         all_certs = emp.get("all_certificates", [])
@@ -99,10 +105,12 @@ def format_employee_info(employee_json):
 
         def filter_certs(certs, status_code):
             """Фильтрует удостоверения по статусу с надежной обработкой ошибок"""
+           
             try:
                 result = []
                 if not isinstance(certs, list):
-                    return result
+                    
+                    return []
                     
                 for cert in certs:
                     if isinstance(cert, dict):
@@ -116,16 +124,20 @@ def format_employee_info(employee_json):
                                 result.append(cert)
                 return result
             except Exception as e:
-                print(f"❌ Ошибка фильтрации удостоверений: {str(e)}")
+                error_msg = f"❌ Ошибка фильтрации удостоверений: {str(e)}"
+                error(error_msg)
+
                 return []
 
         def format_cert_with_date(cert, status_code):
             """Форматирует удостоверение с датой"""
+        
             try:
                 cert_name = cert.get('name', 'Неизвестно')
                 assigned_data = cert.get("assigned_data")
                 
                 if assigned_data is None:
+                    
                     return f"❌ {cert_name}"
                 
                 if isinstance(assigned_data, dict):
@@ -147,37 +159,52 @@ def format_employee_info(employee_json):
                             formatted_date = date_obj.strftime("%d.%m.%Y")
                             
                             if status_code == 4:  # Действует
+                                
                                 return f"✅ {cert_name}: Действует до {formatted_date}"
                             elif status_code == 2:  # Просрочен
+                                
                                 return f"⭕ {cert_name}: Просрочено с {formatted_date}"
                             elif status_code == 3:  # Скоро просрочится
+                                
                                 return f"🟡 {cert_name}: Истекает {formatted_date}"
                             else:
+                                
                                 return f"❌ {cert_name}"
                         except:
                             # Если не удалось распарсить дату, возвращаем без неё
                             if status_code == 4:
+                                
                                 return f"✅ {cert_name}"
                             elif status_code == 2:
+                                
                                 return f"⭕ {cert_name}"
                             elif status_code == 3:
+                                
                                 return f"🟡 {cert_name}"
                             else:
+                                
                                 return f"❌ {cert_name}"
                     else:
                         # Если нет дат, возвращаем без них
                         if status_code == 4:
+                            
                             return f"✅ {cert_name}"
                         elif status_code == 2:
+                            
                             return f"⭕ {cert_name}"
                         elif status_code == 3:
+                            
                             return f"🟡 {cert_name}"
                         else:
+                            
                             return f"❌ {cert_name}"
                 else:
+                    
                     return f"❌ {cert_name}"
             except Exception as e:
-                print(f"❌ Ошибка форматирования удостоверения: {str(e)}")
+                error_msg = f"❌ Ошибка форматирования удостоверения: {str(e)}"
+                error(error_msg)
+                
                 return f"❌ {cert.get('name', 'Неизвестно')}"
 
         # Фильтруем удостоверения по статусам
@@ -214,81 +241,116 @@ def format_employee_info(employee_json):
                 lines.append(f"  • {format_cert_with_date(cert, 1)}")
         else:
             lines.append("отсутствуют")
-        print(f"✅ Форматированная информация о сотруднике: {lines}")
+        debug(f"Форматированная информация о сотруднике: {lines}")
+        log_function_exit("format_employee_info", result="\n".join(lines))
         return "\n".join(lines)
 
     except Exception as e:
         error_msg = f"❌ КРИТИЧЕСКАЯ ОШИБКА в format_employee_info: {str(e)}"
-        print(error_msg)
+        error(error_msg)
+        log_function_exit("format_employee_info", error=error_msg)
         return error_msg
 
-def call_external_api():
+async def call_external_api():
 
     """Вызывает внешний API с надежной обработкой ошибок"""
+    log_function_entry("call_external_api")
     try:
-        print(f"🔍 Выполняю запрос к API: {BASE_URL}/api/people")
-        resp = requests.get(f"{BASE_URL}/api/people", timeout=10, proxies={"http": None, "https": None})
+        api(f"Выполняю запрос к API: {BASE_URL}/api/people")
+        resp = requests.get(
+            f"{BASE_URL}/api/people", 
+            timeout=30,  # Увеличиваем таймаут
+            proxies={"http": None, "https": None},
+            headers={'User-Agent': 'PolzaAI-Bot/1.0'}
+        )
         
         if resp.status_code != 200:
+            error_msg = f"API вернул статус {resp.status_code}"
+            error(error_msg)
+            log_function_exit("call_external_api", error=error_msg)
             return {
-                "error": f"API вернул статус {resp.status_code}",
+                "error": error_msg,
                 "details": f"URL: {BASE_URL}/api/people"
             }
         
         try:
             data = resp.json()
-            print(f"✅ API запрос успешен, получено {len(str(data))} символов")
+            api(f"API запрос успешен, получено {len(str(data))} символов")
+            log_function_exit("call_external_api", result=len(data))
             return data
         except json.JSONDecodeError as e:
+            error_msg = f"Неверный JSON от API: {str(e)}"
+            error(error_msg)
+            log_function_exit("call_external_api", error=error_msg)
             return {
-                "error": f"Неверный JSON от API: {str(e)}",
+                "error": error_msg,
                 "details": f"Полученный ответ: {resp.text[:200]}..."
             }
             
     except requests.exceptions.Timeout:
+        error_msg = "Таймаут запроса к API (10 секунд)"
+        error(error_msg)
+        log_function_exit("call_external_api", error=error_msg)
         return {
-            "error": "Таймаут запроса к API (10 секунд)",
+            "error": error_msg,
             "details": f"URL: {BASE_URL}/api/people"
         }
     except requests.exceptions.ConnectionError as e:
+        error_msg = f"Ошибка подключения к API: {str(e)}"
+        error(error_msg)
+        log_function_exit("call_external_api", error=error_msg)
         return {
-            "error": f"Ошибка подключения к API: {str(e)}",
+            "error": error_msg,
             "details": f"URL: {BASE_URL}/api/people"
         }
     except requests.exceptions.RequestException as e:
+        error_msg = f"Ошибка HTTP запроса: {str(e)}"
+        error(error_msg)
+        log_function_exit("call_external_api", error=error_msg)
         return {
-            "error": f"Ошибка HTTP запроса: {str(e)}",
+            "error": error_msg,
             "details": f"URL: {BASE_URL}/api/people"
         }
     except Exception as e:
+        error_msg = f"Неизвестная ошибка в call_external_api: {str(e)}"
+        error(error_msg)
+        log_function_exit("call_external_api", error=error_msg)
         return {
-            "error": f"Неизвестная ошибка в call_external_api: {str(e)}",
+            "error": error_msg,
             "details": f"URL: {BASE_URL}/api/people"
         }
 
 async def sort_employee(employee):
 
     """Выбирает сотрудников из JSON с надежной обработкой ошибок"""
+    log_function_entry("sort_employee", args=(employee,))
     if not client:
+        error_msg = "OpenAI клиент не инициализирован"
+        error(error_msg)
+        log_function_exit("sort_employee", error=error_msg)
         return {
-            "error": "OpenAI клиент не инициализирован",
+            "error": error_msg,
             "message": "❌ Ошибка: OpenAI клиент недоступен"
         }
     
     if not employee:
+        error_msg = "Пустой фильтр сотрудника"
+        error(error_msg)
+        log_function_exit("sort_employee", error=error_msg)
         return {
-            "error": "Пустой фильтр сотрудника",
+            "error": error_msg,
             "message": "❌ Ошибка: не указан фильтр для поиска сотрудника"
         }
     
-    print(f"🔍 Ищу сотрудников по фильтру: '{employee}'")
+    search_log(f"Ищу сотрудников по фильтру: '{employee}'")
     
     # Получаем данные сотрудников
-    json_employee = call_external_api()
+    json_employee = await call_external_api()
 
     
     # Проверяем на ошибки API
     if isinstance(json_employee, dict) and "error" in json_employee:
+        log_function_exit("sort_employee", error=json_employee)
         return json_employee
         
     response = await client.chat.completions.create(
@@ -346,14 +408,18 @@ async def sort_employee(employee):
     )
         
     if not response.choices or not response.choices[0].message:
+        error_msg = "Пустой ответ от OpenAI API"
+        error(error_msg)
+        log_function_exit("sort_employee", error=error_msg)
         return {
-            "error": "Пустой ответ от OpenAI API",
+            "error": error_msg,
             "message": "❌ Ошибка: получен пустой ответ от ИИ"
         }
     
     result = response.choices[0].message.content
-    print(f"✅ Результат поиска сотрудников: {result}")
-    print(f"✅ Поиск сотрудников завершен")
+    success(f"Результат поиска сотрудников: {result}")
+    success("Поиск сотрудников завершен")
+    log_function_exit("sort_employee", result=result)
     return result
         
     
@@ -387,25 +453,39 @@ tools = [
 # ==== диспетчер ====
 
 
-async def search_dispatcher(messages: list):
+async def search_dispatcher(messages: list, chat_history):
     """Основной диспетчер с максимально надежной обработкой ошибок"""
+    log_function_entry("search_dispatcher", args=(messages, chat_history))
     try:
         if not client:
-            return "❌ КРИТИЧЕСКАЯ ОШИБКА: OpenAI клиент не инициализирован"
+            error_msg = "❌ КРИТИЧЕСКАЯ ОШИБКА: OpenAI клиент не инициализирован"
+            critical(error_msg)
+            log_function_exit("search_dispatcher", error=error_msg)
+            return error_msg
         
         if not messages or not isinstance(messages, list):
-            return "❌ Ошибка: неверный формат сообщений для диспетчера"
+            error_msg = "❌ Ошибка: неверный формат сообщений для диспетчера"
+            error(error_msg)
+            log_function_exit("search_dispatcher", error=error_msg)
+            return error_msg
         
-        print(f"🤖 Отправляю запрос к ИИ (сообщений: {len(messages)})")
+        search_log(f"Отправляю запрос к ИИ (сообщений: {len(messages)})")
+        
+        # Формируем сообщения правильно
+        system_message = {"role": "system", "content": f"""Ты - помощник для поиска информации о сотрудниках. Используй историю чата для понимания контекста: {json.dumps(chat_history, ensure_ascii=False)}"""}
+        all_messages = [system_message] + messages
         
         response = await client.chat.completions.create(
             model="openai/gpt-4.1-mini",
-            messages=messages,
+            messages=all_messages,
             tools=tools
         )
 
         if not response.choices or not response.choices[0].message:
-            return "❌ Ошибка: получен пустой ответ от OpenAI API"
+            error_msg = "❌ Ошибка: получен пустой ответ от OpenAI API"
+            error(error_msg)
+            log_function_exit("search_dispatcher", error=error_msg)
+            return error_msg
 
         msg = response.choices[0].message
 
@@ -414,78 +494,100 @@ async def search_dispatcher(messages: list):
             for tool_call in msg.tool_calls:
                 try:
                     func_name = tool_call.function.name
-                    print(f"🔧 ИИ вызывает функцию: {func_name}")         
+                    search_log(f"ИИ вызывает функцию: {func_name}")         
                     # Безопасный парсинг аргументов
                     try:
                         args = json.loads(tool_call.function.arguments or "{}")
                     except json.JSONDecodeError as e:
-                        return f"❌ Ошибка парсинга аргументов функции {func_name}: {str(e)}"
+                        error_msg = f"❌ Ошибка парсинга аргументов функции {func_name}: {str(e)}"
+                        error(error_msg)
+                        log_function_exit("search_dispatcher", error=error_msg)
+                        return error_msg
 
-                    if func_name == "call_external_api":
-                        print("📡 Выполняю call_external_api")
-                        result = call_external_api()
-                        response_text = format_employee_info(result)
-                    elif func_name == "sort_employee":
-                        print(f"🔍 Выполняю sort_employee с аргументом: {args.get('employee', 'НЕ УКАЗАН')}")
+                    if func_name == "sort_employee":
+                        search_log(f"Выполняю sort_employee с аргументом: {args.get('employee', 'НЕ УКАЗАН')}")
                         result = await sort_employee(args.get("employee", ""))
+                        chat_history_search.append({"role": "assistant", "content": result})
                         response_text = format_employee_info(result)
                     else:
                         response_text = f"❌ Неизвестная функция: {func_name}"
                     
-                    print(f"✅ Функция {func_name} выполнена успешно")
+                    success(f"Функция {func_name} выполнена успешно")
+                    log_function_exit("search_dispatcher", result=response_text)
                     return response_text
                                 
                 except Exception as e:
                     error_msg = f"❌ Ошибка выполнения функции {func_name}: {str(e)}"
-                    print(error_msg)
+                    error(error_msg)
+                    log_function_exit("search_dispatcher", error=error_msg)
                     return error_msg
 
         # Если не было вызова функций, возвращаем обычный ответ
         if not msg.content:
-            return "❌ Ошибка: ИИ не предоставил ответ"
+            error_msg = "❌ Ошибка: ИИ не предоставил ответ"
+            error(error_msg)
+            log_function_exit("search_dispatcher", error=error_msg)
+            return error_msg
             
-        print("✅ ИИ ответил без вызова функций")
+        success("ИИ ответил без вызова функций")
+        log_function_exit("search_dispatcher", result=msg.content)
         return msg.content
 
     except Exception as e:
         error_msg = f"❌ КРИТИЧЕСКАЯ ОШИБКА в search_dispatcher: {str(e)}"
-        print(error_msg)
+        critical(error_msg)
+        log_function_exit("search_dispatcher", error=error_msg)
         return error_msg
 
-async def connect_search_dispatcher(messages):
+async def connect_search_dispatcher(messages, ceo_chat_history):
     """Запускает диспетчер на основе истории чата"""
-    result = await search_dispatcher(messages)
-    print(f"✅ Результат поиска сотрудников connect_search_dispatcher: {result}")
+    log_function_entry("connect_search_dispatcher", args=(messages, ceo_chat_history))
+    global chat_history_search
+    chat_history_search = []
+    chat_history = ceo_chat_history.copy() if isinstance(ceo_chat_history, list) else []
+    chat_history.extend(chat_history_search)
+    result = await search_dispatcher(messages, chat_history)
+    success(f"Результат поиска сотрудников connect_search_dispatcher: {result}")
     # Анализируем результат и определяем тип
     if isinstance(result, str):
         # Если результат - строка, проверяем содержимое
         if "Вот информация" in result or "⚠ Нет сотрудников по запросу" in result:
+            log_function_exit("connect_search_dispatcher", result={"type": "searchready", "message": result, "chat_history_search": json.dumps(chat_history_search, indent=4, ensure_ascii=False)})
             return {
                 "type": "searchready",
-                "message": result
+                "message": result,
+                "chat_history_search": json.dumps(chat_history_search, indent=4, ensure_ascii=False)
             }
         else:
+            log_function_exit("connect_search_dispatcher", result={"type": "searchclar", "message": result, "chat_history_search": json.dumps(chat_history_search, indent=4, ensure_ascii=False)})
             return {
                 "type": "searchclar",
-                "message": result
+                "message": result,
+                "chat_history_search": json.dumps(chat_history_search, indent=4, ensure_ascii=False)
             }
     elif isinstance(result, dict):
         # Если результат - словарь, проверяем поле type
         if result.get("type") == "searchready":
+            log_function_exit("connect_search_dispatcher", result={"type": "searchready", "message": result.get("message", str(result)), "chat_history_search": json.dumps(chat_history_search, indent=4, ensure_ascii=False)})
             return {
                 "type": "searchready",
-                "message": result.get("message", str(result))
+                "message": result.get("message", str(result)),
+                "chat_history_search": json.dumps(chat_history_search, indent=4, ensure_ascii=False)
             }
         else:
+            log_function_exit("connect_search_dispatcher", result={"type": "searchclar", "message": result.get("message", str(result)), "chat_history_search": json.dumps(chat_history_search, indent=4, ensure_ascii=False)})
             return {
                 "type": "searchclar",
-                "message": result.get("message", str(result))
+                "message": result.get("message", str(result)),
+                "chat_history_search": json.dumps(chat_history_search, indent=4, ensure_ascii=False)
             }
     else:
         # По умолчанию считаем, что нужна уточнение
+        log_function_exit("connect_search_dispatcher", result={"type": "searchclar", "message": str(result), "chat_history_search": json.dumps(chat_history_search, indent=4, ensure_ascii=False)})
         return {
             "type": "searchclar",
-            "message": str(result)
+            "message": str(result),
+            "chat_history_search": json.dumps(chat_history_search, indent=4, ensure_ascii=False)
         }
 
 # ==== пример запуска ====

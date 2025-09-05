@@ -1,9 +1,11 @@
 import os
 import json
 import asyncio
+import httpx
 from openai import AsyncOpenAI
 from pull_order import connect_dispatcher
-from get_jsonAPIai import connect_search_dispatcher 
+from get_jsonAPIai import connect_search_dispatcher
+from logger import ceo, debug, info, error, critical, search as search_log, order as order_log, log_function_entry, log_function_exit
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -17,21 +19,22 @@ try:
         api_key=os.getenv("POLZA_AI_TOKEN")
     )
 except Exception as e:
-    print(f"❌ КРИТИЧЕСКАЯ ОШИБКА: Не удалось инициализировать OpenAI клиент: {e}")
+    critical(f"Не удалось инициализировать OpenAI клиент: {e}")
     client = None
 
 ceo_chat_history = []
 
 async def ceo_dispatcher(messages):
-    """Главный диспетчер, который определяет, какой специализированный диспетчер запустить"""
+    """CEO диспетчер - определяет тип запроса и направляет к соответствующему модулю"""
+    log_function_entry("ceo_dispatcher", messages)
+    
     try:
         if not client:
             return "❌ Ошибка: OpenAI клиент не инициализирован"
         
         print(f"🎯 CEO анализирует запрос (сообщений: {len(messages)})")
         
-        global type_of_request
-        global ceo_chat_history
+        global type_of_request, ceo_chat_history
         # Системное сообщение для определения типа запроса
         system_message = {
             "role": "system", 
@@ -48,22 +51,24 @@ async def ceo_dispatcher(messages):
                - Запускай когда пользователь хочет ПОСМОТРЕТЬ/НАЙТИ информацию
                - Ключевые слова: "показать", "найти", "кто", "информация", "список", "все", "Проверь", "Проверяй"
                - Примеры: "покажи всех", "найди Егорова", "кто работает в отделе"
+
+            Если сообщение об отмене того что мы делаем "Отмена" "нет не надо" "Не надо заказывать" → возвращай "cancel"
             
             **ПРАВИЛА:**
             - Анализируй контекст последнего сообщения пользователя
-            - В ПЕРВУЮ ОЧЕРЕДЬ проверяй type_of_request если он = "orderclar" то возвращай "order", если он = "searchclar" то возвращай "search" 
-            - Если type_of_request = "orderready" то дальше выбирай по контексту запроса
-            - Если type_of_request = "searchready" то дальше выбирай по контексту запроса 
+             
             - Если это ЗАКАЗ → возвращай "order"
             - Если это ПОИСК/ПРОСМОТР → возвращай "search"
+            - Если это ОТМЕНА → возвращай "cancel"
             - Если неясно → возвращай "search" (по умолчанию)
             
-            **ОБЯЗАТЕЛЬНО:** возвращай только одно слово: "order" или "search"
+            **ОБЯЗАТЕЛЬНО:** возвращай только одно слово: "order" или "search" или "cancel"
             """
         }
         print(f"🎯\n\n CEO chat_history: {ceo_chat_history}\n\n")
         # Добавляем системное сообщение к истории
-        messages_with_system = [system_message] + messages + ceo_chat_history
+        messages_with_system = [system_message] + ceo_chat_history + messages 
+        messages_with_ceo_chat_history = ceo_chat_history + messages
         print(f"🎯\n\n CEO messages_with_system: {messages_with_system}\n\n")
         print(f"DEBUG: Отправляю {len(messages_with_system)} сообщений в CEO API")
         
@@ -78,34 +83,41 @@ async def ceo_dispatcher(messages):
             return "❌ Ошибка: получен пустой ответ от OpenAI API"
         
         decision = response.choices[0].message.content.strip().lower()
+        info(f"ceo_dispatcher, decision: {decision}")
         print(f"🎯 CEO решение: {decision}")
-        if type_of_request == "orderclar":
+        if(decision == "cancel"):
+            type_of_request = ""
+            ceo_chat_history = []
+            return "Отмена, готов выполнить любой другой запрос"
+        elif type_of_request == "orderclar":
             decision = "order"
         elif type_of_request == "searchclar":
             decision = "search"
         print(f"🎯 CEO решение после проверки type_of_request: {decision}, {type_of_request}")
+        info(f"ceo_dispatcher, decision после проверки type_of_request: {decision}, {type_of_request}")
         
 
 
         # Определяем, какой диспетчер запустить
         if "order" in decision:
             print("📋 Запускаю order_dispatcher для заказа удостоверений")
-            result = await connect_dispatcher(messages, messages_with_system)
+            result = await connect_dispatcher(messages, messages_with_ceo_chat_history)
             print(f"🎯 CEO результат order_dispatcher: {result.get("type")}")
             type_of_request = result.get("type")
             ceo_chat_history.append({"role": "assistant", "content": result.get("chat_history_order")})
             return result.get("message")
         elif "search" in decision:
             print("🔍 Запускаю search_dispatcher для поиска информации")
-            result = await connect_search_dispatcher(messages)
+            result = await connect_search_dispatcher(messages, messages_with_ceo_chat_history)
             type_of_request = result.get("type")
-            ceo_chat_history.append({"role": "assistant", "content": result.get("message")})
+            ceo_chat_history.append({"role": "assistant", "content": result.get("chat_history_search")})
             return result.get("message")
+        
         else:
             print("🔍 По умолчанию запускаю search_dispatcher")
-            result = await connect_search_dispatcher(messages)
+            result = await connect_search_dispatcher(messages, messages_with_ceo_chat_history)
             type_of_request = result.get("type")
-            ceo_chat_history.append({"role": "assistant", "content": result.get("message")})
+            ceo_chat_history.append({"role": "assistant", "content": result.get("chat_history_search")})
             return result.get("message")
         
             
