@@ -137,6 +137,7 @@ async def makeOrderFormat(messages, employee_name, certificate_name):
         data = json_people['data']
         debug(f"data type: {type(data)}, length: {len(data) if isinstance(data, list) else 'not list'}")
         if isinstance(data, list) and len(data) > 0:
+            id_person = data[0].get('id', "null")
             employee_full_name = data[0].get('full_name', employee_name)
             snils = data[0].get('snils', "null")
             inn = data[0].get('inn', "null")
@@ -146,6 +147,7 @@ async def makeOrderFormat(messages, employee_name, certificate_name):
             debug(f"Extracted from data[0]: {employee_full_name}, {snils}, {inn}")
         elif isinstance(data, dict):
             # data is a dict with employee data directly
+            id_person = data.get('id', "null")
             employee_full_name = data.get('full_name', employee_name)
             snils = data.get('snils', "null")
             inn = data.get('inn', "null")
@@ -156,6 +158,7 @@ async def makeOrderFormat(messages, employee_name, certificate_name):
     elif isinstance(json_people, dict) and 'full_name' in json_people:
         # json_people is a dict with employee data directly
         debug("json_people is employee data dict")
+        id_person = json_people.get('id', "null")
         employee_full_name = json_people.get('full_name', employee_name)
         snils = json_people.get('snils', "null")
         inn = json_people.get('inn', "null")
@@ -166,6 +169,7 @@ async def makeOrderFormat(messages, employee_name, certificate_name):
     elif isinstance(json_people, list) and len(json_people) > 0:
         debug(f"json_people is list, length: {len(json_people)}")
         if isinstance(json_people[0], dict):
+            id_person = json_people[0].get('id', "null")
             employee_full_name = json_people[0].get('full_name', employee_name)
             snils = json_people[0].get('snils', "null")
             inn = json_people[0].get('inn', "null")
@@ -187,6 +191,7 @@ async def makeOrderFormat(messages, employee_name, certificate_name):
     order_json = {
         "type": order_type,
         "employee": {
+            "id": id_person,
             "full_name": employee_full_name,
             "snils": snils,
             "inn": inn,
@@ -219,6 +224,7 @@ async def clarification(messages, order_json):
                          {{
                             "type": "clarification или readyorder",
                             "employee": {{
+                                "id": "ID сотрудника",
                                 "full_name": "ФИО сотрудника",
                                 "snils": "СНИЛС сотрудника",
                                 "inn": "ИНН сотрудника",
@@ -355,8 +361,8 @@ async def createNewEmployee(employee_name, certificate_name, messages):
         log_function_exit("createNewEmployee", error=error_msg)
         return None
 
-async def parsAllCertificates(certificate_name):
-    """Парсит все сертификаты"""
+async def parsAllCertificates(certificate_names):
+    """Парсит все сертификаты и возвращает массив ID"""
     log_function_entry("parsAllCertificates")
     try:
         import requests
@@ -367,15 +373,14 @@ async def parsAllCertificates(certificate_name):
             headers={'User-Agent': 'PolzaAI-Bot/1.0'}
         )
 
-        
-
         if resp.status_code == 200:
             info(f"Парсинг всех сертификатов: {resp.json()}")
-            system_message = {
-            "role": "system",
-            "content": f"""Ты — определяешь правильное название сертифката и возвращаешь его id.
+            messages = [ 
+                {
+                "role": "system",
+                "content": f"""Ты — определяешь правильное название сертифката и возвращаешь его id.
             
-                У тебя есть имена сертификата который ввел пользоват '{certificate_name}'.
+                У тебя есть имена сертификата который ввел пользоват '{certificate_names}'.
                 
                 Ищи в {json.dumps(resp.json(), indent=2, ensure_ascii=False)}:
                 - Название сертификата и id
@@ -383,31 +388,52 @@ async def parsAllCertificates(certificate_name):
                 Если информация найдена, заполни соответствующие поля.
                 Если информации нет, оставь "null".
                 
-                ВАЖНО: верни id сертификата или сертификатов: {certificate_name}
+                ВАЖНО: верни JSON в формате {{"название_сертификата": id, "название_сертификата2": id2}}
 
                 Не задавай лишние вопросы, только уточни данные.
                 """
-            }
+                },
+                {
+                    "role": "user", 
+                    "content": f"Найди ID для сертификатов: {certificate_names}"
+                }
+            ]
             
             info(f"Отправляю запрос к ИИ для анализа истории чата")
             
             response = await client.chat.completions.create(
                 model="openai/gpt-4.1-mini",
-                messages=system_message,
+                messages=messages,
                 temperature=0.1
             )
-            return response.choices[0].message.content
+            
+            # Парсим JSON ответ от ИИ
+            ai_response = response.choices[0].message.content
+            info(f"Ответ ИИ: {ai_response}")
+            
+            try:
+                # Парсим JSON ответ
+                parsed_response = json.loads(ai_response)
+                # Извлекаем только ID значения
+                certificate_ids = list(parsed_response.values())
+                info(f"Извлеченные ID сертификатов: {certificate_ids}")
+                log_function_exit("parsAllCertificates", result=certificate_ids)
+                return certificate_ids
+            except json.JSONDecodeError as e:
+                error(f"Ошибка парсинга JSON от ИИ: {e}")
+                log_function_exit("parsAllCertificates", error=f"Ошибка парсинга JSON: {e}")
+                return []
         else:
             error(f"Ошибка API: {resp.status_code} - {resp.text}")
             log_function_exit("parsAllCertificates", error=f"Ошибка API: {resp.status_code} - {resp.text}")
-            return None
+            return []
     except Exception as e:
         error_msg = f"❌ Ошибка при парсинге всех сертификатов: {str(e)}"
         error(error_msg)
         log_function_exit("parsAllCertificates", error=error_msg)
-        return None
+        return []
 
-def updatePerson(order_json):
+async def updatePerson(order_json):
     """Обновляет данные сотрудника в базе данных"""
     log_function_entry("updatePerson", args=(order_json,))
     try:
@@ -416,54 +442,55 @@ def updatePerson(order_json):
         # Извлекаем данные из заказа
         employee = order_json.get("employee", {})
         certificate = order_json.get("certificate", [])
-        id_certificate = parsAllCertificates(certificate)
-        info(f"Парсим все сертификаты: {id_certificate}")
+        id_certificates = await parsAllCertificates(certificate)
+        info(f"Парсим все сертификаты: {id_certificates}")
 
 
         
         # Формируем данные для API
-        # api_data = {
-        #     "people_id": 1,                    # ID человека (Иванов Иван Иванович)
-        #     "certificate_id": 2,               # ID типа сертификата (например, "Пожарная безопасность")
-        #     "assigned_date": "2025-01-15",     # Дата выдачи
-        #     "certificate_number": "ПБ-001",    # Номер сертификата
-        #     "notes": "Новый сертификат"        # Примечания
-        # }
+        for id_certificate in id_certificates:
+            if id_certificate:
+                api_data = {
+                    "people_id": order_json.get("employee", {}).get("id", "null"),                    # ID человека (Иванов Иван Иванович)
+                    "certificate_id": id_certificate,            # ID типа сертификата (например, "Пожарная безопасность")
+                    "assigned_date": "2000-01-01",
+                    "certificate_number": "В ожидании",    # Номер сертификата
+                }
+                
+                # Очищаем пустые значения
+                api_data = {k: v for k, v in api_data.items() if v and v != "null"}
+                
+                info(f"Отправляю данные в API: {json.dumps(api_data, indent=2, ensure_ascii=False)}")
+                
+                # Отправляем POST запрос
+                response = requests.post(
+                    f"{BASE_URL}/api/people-certificates",
+                    headers={
+                        "Content-Type": "application/json",
+                        "Accept": "application/json",
+                        "User-Agent": "PolzaAI-Bot/1.0"
+                    },
+                    json=api_data,
+                    timeout=30,  # Увеличиваем таймаут
+                    proxies={"http": None, "https": None}
+                )
+                
+                if response.status_code == 200 or response.status_code == 201:
+                    success(f"Сертификат {id_certificate} успешно добавлен для сотрудника")
+                else:
+                    error(f"Ошибка API для сертификата {id_certificate}: {response.status_code} - {response.text}")
         
-        # # Очищаем пустые значения
-        # api_data = {k: v for k, v in api_data.items() if v and v != "null"}
-        
-        # info(f"Отправляю данные в API: {json.dumps(api_data, indent=2, ensure_ascii=False)}")
-        
-        # # Отправляем POST запрос
-        # response = requests.post(
-        #     "http://labor.tetrakom-crm-miniapp.ru/api/people",
-        #     headers={
-        #         "Content-Type": "application/json",
-        #         "Accept": "application/json",
-        #         "User-Agent": "PolzaAI-Bot/1.0"
-        #     },
-        #     json=api_data,
-        #     timeout=30,  # Увеличиваем таймаут
-        #     proxies={"http": None, "https": None}
-        # )
-        
-        # if response.status_code == 200 or response.status_code == 201:
-        #     success("Заказ успешно добавлен в базу данных")
-        #     log_function_exit("addToDatabase", result=f"✅ Заказ для {employee.get('full_name')} успешно добавлен в базу данных со статусом 'В ожидании'")
-        #     return f"✅ Заказ для {employee.get('full_name')} успешно измене в базе данных со статусом 'В ожидании'"
-        # else:
-        #     error(f"Ошибка API: {response.status_code} - {response.text}")
-        #     log_function_exit("addToDatabase", error=f"Ошибка API: {response.status_code} - {response.text}")
-            # return f"❌ Ошибка при добавлении заказа: {response.status_code} - {response.text}"
+        success(f"Все сертификаты обработаны для сотрудника {employee.get('full_name', 'Неизвестно')}")
+        log_function_exit("updatePerson", result=f"✅ Сертификаты успешно добавлены для {employee.get('full_name', 'Неизвестно')}")
+        return f"✅ Сертификаты успешно добавлены для {employee.get('full_name', 'Неизвестно')}"
             
     except Exception as e:
         error_msg = f"❌ Ошибка при отправке заказа в базу данных: {str(e)}"
         print(error_msg)
-        log_function_exit("addToDatabase", error=error_msg)
+        log_function_exit("updatePerson", error=error_msg)
         return error_msg
 
-def addToDatabase(order_json):
+async def addToDatabase(order_json):
     """Добавляет заказ в базу данных"""
     log_function_entry("addToDatabase", args=(order_json,))
     try:
@@ -471,7 +498,6 @@ def addToDatabase(order_json):
         
         # Извлекаем данные из заказа
         employee = order_json.get("employee", {})
-        certificate = order_json.get("certificate", [])
         
         # Формируем данные для API
         api_data = {
@@ -505,6 +531,39 @@ def addToDatabase(order_json):
         
         if response.status_code == 200 or response.status_code == 201:
             success("Заказ успешно добавлен в базу данных")
+            people_json = response.json()
+            
+            # Извлекаем ID созданного сотрудника
+            info(f"Полный ответ API при создании сотрудника: {people_json}")
+            
+            # Пробуем разные варианты получения ID
+            created_employee_id = people_json.get("id") or people_json.get("data", {}).get("id") or people_json.get("employee", {}).get("id")
+            info(f"Создан сотрудник с ID: {created_employee_id}")
+            
+            # Проверяем, что ID не пустой
+            if created_employee_id and created_employee_id != "":
+                # Формируем структуру для updatePerson
+                order_with_id = {
+                    "type": "readyorder",
+                    "employee": {
+                        "id": created_employee_id,  # Используем ID из ответа API
+                        "full_name": employee.get("full_name", ""),
+                        "snils": employee.get("snils", ""),
+                        "inn": employee.get("inn", ""),
+                        "position": employee.get("position", ""),
+                        "birth_date": employee.get("birth_date", ""),
+                        "phone": employee.get("phone", "")
+                    },
+                    "certificate": order_json.get("certificate", []),
+                    "status": "new_employee"
+                }
+                
+                info(f"order_with_id for updatePerson: {order_with_id}")
+                await updatePerson(order_with_id)
+            else:
+                error(f"❌ Не удалось получить ID созданного сотрудника: {created_employee_id}")
+                error(f"Ответ API: {people_json}")
+            
             log_function_exit("addToDatabase", result=f"✅ Заказ для {employee.get('full_name')} успешно добавлен в базу данных со статусом 'В ожидании'")
             return f"✅ Заказ для {employee.get('full_name')} успешно добавлен в базу данных со статусом 'В ожидании'"
         else:
@@ -639,7 +698,15 @@ async def order_dispatcher(messages, chat_history):
                                         log_function_exit("order_dispatcher", result=parsed_result.get("message"))
                                         return parsed_result.get("message")
                                     else:
-                                        addToDatabase(parsed_result)
+                                        # Проверяем статус сотрудника
+                                        if parsed_result.get("status") == "new_employee":
+                                            # Новый сотрудник - добавляем в базу
+                                            await addToDatabase(parsed_result)
+                                            await updatePerson(parsed_result)
+                                        else:
+                                            # Существующий сотрудник - только обновляем сертификаты
+                                            await updatePerson(parsed_result)
+                                        
                                         chat_history_order.append({"role": "assistant", "content": json.dumps(format_message(parsed_result), ensure_ascii=False)})
                                         log_function_exit("order_dispatcher", result=format_message(parsed_result).get("message"))
                                         return format_message(parsed_result).get("message")
@@ -653,13 +720,27 @@ async def order_dispatcher(messages, chat_history):
                                     log_function_exit("order_dispatcher", result=result.get("message"))
                                     return result.get("message")
                                 else:
-                                    addToDatabase(result)
+                                    # Проверяем статус сотрудника
+                                    if result.get("status") == "new_employee":
+                                        # Новый сотрудник - добавляем в базу
+                                        await addToDatabase(result)
+                                        await updatePerson(result)
+                                    else:
+                                        # Существующий сотрудник - только обновляем сертификаты
+                                        await updatePerson(result)
+                                    
                                     chat_history_order.append({"role": "assistant", "content": json.dumps(format_message(result), ensure_ascii=False)})
                                     log_function_exit("order_dispatcher", result=format_message(result).get("message"))
                                     return format_message(result).get("message")
                         else:
-                            addToDatabase(result)
-                            updatePerson(result)
+                            # Проверяем статус сотрудника
+                            if result.get("status") == "new_employee":
+                                await addToDatabase(result)
+                            else:
+                                # Существующий сотрудник - только обновляем сертификаты
+                                await updatePerson(result)
+
+                            
                             chat_history_order.append({"role": "assistant", "content": json.dumps(format_message(result), ensure_ascii=False)})
                             log_function_exit("order_dispatcher", result=format_message(result).get("message"))
                             return format_message(result).get("message")
@@ -685,7 +766,15 @@ async def order_dispatcher(messages, chat_history):
                                         log_function_exit("order_dispatcher", result=parsed_result.get("message"))
                                         return parsed_result.get("message")
                                     else:
-                                        addToDatabase(parsed_result)
+                                        # Проверяем статус сотрудника
+                                        if parsed_result.get("status") == "new_employee":
+                                            # Новый сотрудник - добавляем в базу
+                                            await addToDatabase(parsed_result)
+                                            await updatePerson(parsed_result)
+                                        else:
+                                            # Существующий сотрудник - только обновляем сертификаты
+                                            await updatePerson(parsed_result)
+                                        
                                         chat_history_order.append({"role": "assistant", "content": json.dumps(parsed_result, ensure_ascii=False)})
                                         log_function_exit("order_dispatcher", result=format_message(parsed_result).get("message"))
                                         return format_message(parsed_result).get("message")
@@ -698,7 +787,15 @@ async def order_dispatcher(messages, chat_history):
                                     log_function_exit("order_dispatcher", result=result.get("message"))
                                     return result.get("message")
                                 else:
-                                    addToDatabase(result)
+                                    # Проверяем статус сотрудника
+                                    if result.get("status") == "new_employee":
+                                        # Новый сотрудник - добавляем в базу
+                                        await addToDatabase(result)
+                                        await updatePerson(result)
+                                    else:
+                                        # Существующий сотрудник - только обновляем сертификаты
+                                        await updatePerson(result)
+                                    
                                     chat_history_order.append({"role": "assistant", "content": json.dumps(result, ensure_ascii=False)})
                                     log_function_exit("order_dispatcher", result=format_message(result).get("message"))
                                     return format_message(result).get("message")
@@ -808,7 +905,9 @@ async def connect_dispatcher(messages, ceo_chat_history):
     global chat_history_order
     chat_history_order = []
     chat_history = ceo_chat_history.copy() if isinstance(ceo_chat_history, list) else []
-    chat_history.extend(chat_history_order)
+    if chat_history_order:
+        chat_history.extend(chat_history_order)
+    
     result = await order_dispatcher(messages, chat_history)
     
     # Анализируем результат и определяем тип

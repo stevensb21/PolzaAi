@@ -16,7 +16,7 @@ load_dotenv()
 # Инициализация клиента OpenAI с обработкой ошибок
 try:
     client = AsyncOpenAI(
-        base_url="https://api.polza.ai/api/v1",
+    base_url="https://api.polza.ai/api/v1",
         api_key=os.getenv("POLZA_AI_TOKEN")
     )
 except Exception as e:
@@ -352,6 +352,28 @@ async def sort_employee(employee):
     if isinstance(json_employee, dict) and "error" in json_employee:
         log_function_exit("sort_employee", error=json_employee)
         return json_employee
+    
+    # Проверяем, что json_employee не None и не содержит ошибок
+    if json_employee is None:
+        error_msg = "Данные сотрудников не получены"
+        error(error_msg)
+        log_function_exit("sort_employee", error=error_msg)
+        return {
+            "error": error_msg,
+            "message": "❌ Ошибка: не удалось получить данные сотрудников"
+        }
+    
+    # Безопасно сериализуем JSON
+    try:
+        json_content = json.dumps(json_employee, ensure_ascii=False) if json_employee else "{}"
+    except (TypeError, ValueError) as e:
+        error_msg = f"Ошибка сериализации JSON: {str(e)}"
+        error(error_msg)
+        log_function_exit("sort_employee", error=error_msg)
+        return {
+            "error": error_msg,
+            "message": "❌ Ошибка: неверный формат данных сотрудников"
+        }
         
     response = await client.chat.completions.create(
         model="openai/gpt-4.1",
@@ -388,8 +410,7 @@ async def sort_employee(employee):
                                     "status": Статус удостоверения, 1 - Отсутствует, 2 - Просрочен, 3 - Скоро просрочится, 4 - Действует
                                     "notes": Примечания к удостоверению
                                 }
-                                },
-                                {... и так далее}
+                                }
                             }
                     }}
                     -жесткое правило:
@@ -400,7 +421,7 @@ async def sort_employee(employee):
                 -верни полный JSON сотрудников или сотрудника, ничего не обрезай, если нет сотрудников, верни пустой JSON с сообщением "нет сотрудников"
             """},
             {"role": "user", "content": employee},
-            {"role": "assistant", "content": json.dumps(json_employee)}
+            {"role": "assistant", "content": json_content}
         ],
 
         max_tokens=1000000,
@@ -425,15 +446,6 @@ async def sort_employee(employee):
     
 
 tools = [
-
-    # {
-    #     "type": "function",
-    #     "function": {
-    #         "name": "call_external_api",
-    #         "description": "Получает JSON со всеми сотрудниками",
-    #         "parameters": {"type": "object", "properties": {}, "required": []}
-    #     }
-    # },
     {
         "type": "function",
         "function": {
@@ -477,7 +489,7 @@ async def search_dispatcher(messages: list, chat_history):
         
         response = await client.chat.completions.create(
             model="openai/gpt-4.1-mini",
-            messages=all_messages,
+                            messages=all_messages,
             tools=tools
         )
 
@@ -489,13 +501,13 @@ async def search_dispatcher(messages: list, chat_history):
 
         msg = response.choices[0].message
 
-        # Если модель решила вызвать tool
+                    # Если модель решила вызвать tool
         if msg.tool_calls:
             for tool_call in msg.tool_calls:
                 try:
                     func_name = tool_call.function.name
                     search_log(f"ИИ вызывает функцию: {func_name}")         
-                    # Безопасный парсинг аргументов
+                            # Безопасный парсинг аргументов
                     try:
                         args = json.loads(tool_call.function.arguments or "{}")
                     except json.JSONDecodeError as e:
@@ -511,27 +523,26 @@ async def search_dispatcher(messages: list, chat_history):
                         response_text = format_employee_info(result)
                     else:
                         response_text = f"❌ Неизвестная функция: {func_name}"
-                    
-                    success(f"Функция {func_name} выполнена успешно")
-                    log_function_exit("search_dispatcher", result=response_text)
-                    return response_text
-                                
+                        success(f"Функция {func_name} выполнена успешно")
+                        log_function_exit("search_dispatcher", result=response_text)
+                        return response_text
+                                        
                 except Exception as e:
                     error_msg = f"❌ Ошибка выполнения функции {func_name}: {str(e)}"
                     error(error_msg)
                     log_function_exit("search_dispatcher", error=error_msg)
                     return error_msg
 
-        # Если не было вызова функций, возвращаем обычный ответ
-        if not msg.content:
-            error_msg = "❌ Ошибка: ИИ не предоставил ответ"
-            error(error_msg)
-            log_function_exit("search_dispatcher", error=error_msg)
-            return error_msg
-            
-        success("ИИ ответил без вызова функций")
-        log_function_exit("search_dispatcher", result=msg.content)
-        return msg.content
+                        # Если не было вызова функций, возвращаем обычный ответ
+                if not msg.content:
+                    error_msg = "❌ Ошибка: ИИ не предоставил ответ"
+                    error(error_msg)
+                    log_function_exit("search_dispatcher", error=error_msg)
+                    return error_msg
+                    
+                success("ИИ ответил без вызова функций")
+                log_function_exit("search_dispatcher", result=msg.content)
+                return msg.content
 
     except Exception as e:
         error_msg = f"❌ КРИТИЧЕСКАЯ ОШИБКА в search_dispatcher: {str(e)}"
