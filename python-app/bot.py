@@ -36,13 +36,122 @@ def help_command(message):
         "Как использовать бота:\n"
         "1. Просто напишите имя или фамилию сотрудника\n"
         "2. Я найду информацию о сотруднике и его удостоверениях\n"
-        "3. Для выхода используйте /exit"
+        "3. Для создания заказа с фото:\n"
+        "   - Отправьте фото с подписью (данные сотрудника)\n"
+        "   - Или сначала фото, затем данные отдельным сообщением\n"
+        "4. Для выхода используйте /exit"
     )
 
 @bot.message_handler(commands=['exit'])
 def exit_command(message):
     """Обработчик команды /exit"""
     bot.reply_to(message, "До свидания! 👋")
+
+@bot.message_handler(content_types=['photo'])
+def handle_photo_with_text(message):
+    """Обработчик фотографий с текстом"""
+    log_function_entry("handle_photo_with_text", args=(message.photo, message.caption))
+    try:
+        # Получаем фото с наилучшим качеством
+        photo = message.photo[-1]
+        file_id = photo.file_id
+        
+        # Получаем информацию о файле с повторными попытками
+        max_retries = 3
+        file_info = None
+        
+        for attempt in range(max_retries):
+            try:
+                file_info = bot.get_file(file_id)
+                break
+            except Exception as e:
+                if attempt < max_retries - 1:
+                    info(f"Попытка {attempt + 1} получения файла не удалась: {e}. Повторяю...")
+                    time.sleep(1)  # Ждем 1 секунду перед повторной попыткой
+                else:
+                    raise e
+        
+        if not file_info:
+            raise Exception("Не удалось получить информацию о файле после всех попыток")
+            
+        file_url = f"https://api.telegram.org/file/bot{TOKEN}/{file_info.file_path}"
+        
+        # Проверяем доступность URL
+        try:
+            import requests
+            test_response = requests.head(file_url, timeout=5)
+            if test_response.status_code != 200:
+                info(f"URL фото недоступен, используем file_id: {file_id}")
+                file_url = file_id  # Используем file_id как fallback
+        except Exception as e:
+            info(f"Не удалось проверить доступность URL, используем file_id: {e}")
+            file_url = file_id  # Используем file_id как fallback
+        
+        info(f"Получено фото: {file_url}")
+        
+        # Получаем текст из подписи к фото
+        text_content = message.caption or ""
+        
+        if text_content:
+            # Если есть текст - обрабатываем как заказ с фото
+            info(f"Обрабатываем заказ с фото: {text_content}")
+            
+            # Создаем асинхронную функцию для обработки
+            async def process_photo_order():
+                try:
+                    # Создаем историю сообщений для ceo_dispatcher
+                    messages = [
+                        {
+                            "role": "user", 
+                            "content": text_content,
+                            "photo": file_url
+                        }
+                    ]
+                    
+                    # Отправляем сообщение в ceo_dispatcher
+                    result = await ceo_dispatcher(messages)
+                    
+                    # Отправляем результат
+                    bot.reply_to(message, result)
+                    
+                except Exception as e:
+                    error_msg = f"❌ Ошибка обработки заказа с фото: {str(e)}"
+                    error(error_msg)
+                    bot.reply_to(message, error_msg)
+            
+            # Запускаем асинхронную обработку
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            try:
+                loop.run_until_complete(process_photo_order())
+            finally:
+                loop.close()
+            
+        else:
+            # Если нет текста - сохраняем фото для следующего сообщения
+            global last_photo_url
+            last_photo_url = file_url
+            bot.reply_to(message, f"📸 Фото получено! URL: {file_url}\n\nТеперь отправьте данные сотрудника для создания заказа с фотографией.")
+        
+        log_function_exit("handle_photo_with_text", result="Фото с текстом успешно обработано")
+        
+    except Exception as e:
+        error_msg = f"❌ Ошибка обработки фото: {str(e)}"
+        error(error_msg)
+        
+        # Отправляем более понятное сообщение пользователю
+        if "ConnectionResetError" in str(e) or "Connection aborted" in str(e):
+            user_msg = "❌ Ошибка сети при получении фото. Попробуйте отправить фото еще раз."
+        elif "timeout" in str(e).lower():
+            user_msg = "❌ Превышено время ожидания. Попробуйте отправить фото еще раз."
+        else:
+            user_msg = f"❌ Ошибка обработки фото: {str(e)}"
+        
+        bot.reply_to(message, user_msg)
+        log_function_exit("handle_photo_with_text", error=error_msg)
+
+# Глобальная переменная для хранения последнего URL фото
+last_photo_url = None
 
 @bot.message_handler(func=lambda message: True)
 def handle_message(message):
@@ -63,6 +172,12 @@ def handle_message(message):
                 messages = [
                     {"role": "user", "content": user_message}
                 ]
+                
+                # Добавляем фото в сообщение, если оно есть
+                global last_photo_url
+                if last_photo_url:
+                    messages[0]["photo"] = last_photo_url
+                    info(f"Добавляем фото в сообщение: {last_photo_url}")
                 
                 # Отправляем сообщение в ceo_dispatcher
                 result = await ceo_dispatcher(messages)

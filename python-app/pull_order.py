@@ -132,6 +132,7 @@ async def makeOrderFormat(messages, employee_name, certificate_name):
     position = "null"
     birth_date = "null"
     phone = "null"
+    photo = "null"
     
     if isinstance(json_people, dict) and 'data' in json_people:
         data = json_people['data']
@@ -144,7 +145,8 @@ async def makeOrderFormat(messages, employee_name, certificate_name):
             position = data[0].get('position', "null")
             birth_date = data[0].get('birth_date', "null")
             phone = data[0].get('phone', "null")
-            debug(f"Extracted from data[0]: {employee_full_name}, {snils}, {inn}")
+            photo = data[0].get('photo', "null")
+            debug(f"Extracted from data[0]: {employee_full_name}, {snils}, {inn}, photo: {photo}")
         elif isinstance(data, dict):
             # data is a dict with employee data directly
             id_person = data.get('id', "null")
@@ -154,7 +156,8 @@ async def makeOrderFormat(messages, employee_name, certificate_name):
             position = data.get('position', "null")
             birth_date = data.get('birth_date', "null")
             phone = data.get('phone', "null")
-            debug(f"Extracted from data dict: {employee_full_name}, {snils}, {inn}")
+            photo = data.get('photo', "null")
+            debug(f"Extracted from data dict: {employee_full_name}, {snils}, {inn}, photo: {photo}")
     elif isinstance(json_people, dict) and 'full_name' in json_people:
         # json_people is a dict with employee data directly
         debug("json_people is employee data dict")
@@ -165,7 +168,8 @@ async def makeOrderFormat(messages, employee_name, certificate_name):
         position = json_people.get('position', "null")
         birth_date = json_people.get('birth_date', "null")
         phone = json_people.get('phone', "null")
-        debug(f"Extracted from json_people: {employee_full_name}, {snils}, {inn}")
+        photo = json_people.get('photo', "null")
+        debug(f"Extracted from json_people: {employee_full_name}, {snils}, {inn}, photo: {photo}")
     elif isinstance(json_people, list) and len(json_people) > 0:
         debug(f"json_people is list, length: {len(json_people)}")
         if isinstance(json_people[0], dict):
@@ -176,12 +180,13 @@ async def makeOrderFormat(messages, employee_name, certificate_name):
             position = json_people[0].get('position', "null")
             birth_date = json_people[0].get('birth_date', "null")
             phone = json_people[0].get('phone', "null")
-            debug(f"Extracted from json_people[0]: {employee_full_name}, {snils}, {inn}")
+            photo = json_people[0].get('photo', "null")
+            debug(f"Extracted from json_people[0]: {employee_full_name}, {snils}, {inn}, photo: {photo}")
     else:
         debug("No matching condition found")
     
-    # Проверяем полноту данных
-    required_fields = [snils, inn, position, birth_date, phone]
+    # Проверяем полноту данных (включая фото)
+    required_fields = [snils, inn, position, birth_date, phone, photo]
     has_missing_data = any(field is None or field == "null" for field in required_fields)
     
     # Определяем тип на основе полноты данных
@@ -197,7 +202,8 @@ async def makeOrderFormat(messages, employee_name, certificate_name):
             "inn": inn,
             "position": position,
             "birth_date": birth_date,
-            "phone": phone
+            "phone": phone,
+            "photo": photo
         },
         "certificate": certificate_name,
         "status": "pending"
@@ -210,6 +216,18 @@ async def makeOrderFormat(messages, employee_name, certificate_name):
 async def clarification(messages, order_json):
     """Уточняет данные у пользователя"""
     log_function_entry("clarification", args=(messages, order_json))
+    
+    # Проверяем, есть ли фото в последнем сообщении
+    last_message = messages[-1] if messages else {}
+    photo_url = last_message.get("photo")
+    
+    if photo_url:
+        # Если есть фото, обновляем order_json
+        employee = order_json.get("employee", {})
+        employee["photo"] = photo_url
+        order_json["employee"] = employee
+        info(f"Добавлено фото в заказ: {photo_url}")
+    
     response = await client.chat.completions.create(
         model="openai/gpt-4.1-mini",
         messages=[
@@ -217,9 +235,14 @@ async def clarification(messages, order_json):
                     Вот данные для заказа: {json.dumps(order_json, indent=4, ensure_ascii=False)}
 
                     Твоя задача — уточнить данные у пользователя.
-                    Проверь все ли данные в employee есть и если нет, уточни у пользователя запиши сообщение в поле message.
-                    Если все данные есть, верни order_json, но измени в нем type на "readyorder".
-                    Если данные неполные, верни order_json, но измени в нем type на "clarification".
+                    Проверь все ли данные в employee есть (включая фото) и если нет, уточни у пользователя запиши сообщение в поле message.
+                    Если все данные есть (включая фото), верни order_json, но измени в нем type на "readyorder".
+                    Если данные неполные (включая отсутствие фото), верни order_json, но измени в нем type на "clarification".
+                    
+                    ВАЖНО для статуса:
+                    - Если сотрудник новый (id = null) и есть все данные → status = "new_employee"
+                    - Если сотрудник существующий (id есть) и есть все данные → status = "existing_employee_with_photo"
+                    - Если данные неполные → status = "pending"
                     В конечном итоге у тебя должен получиться вот такоц JSON:
                          {{
                             "type": "clarification или readyorder",
@@ -230,7 +253,8 @@ async def clarification(messages, order_json):
                                 "inn": "ИНН сотрудника",
                                 "position": "Должность сотрудника",
                                 "birth_date": "Дата рождения сотрудника",
-                                "phone": "Телефон сотрудника"
+                                "phone": "Телефон сотрудника",
+                                "photo": "URL фото сотрудника"
                             }},
                             "certificate": [
                                 "Название удостоверения"
@@ -295,24 +319,30 @@ async def createNewEmployee(employee_name, certificate_name, messages):
             - Должность
             - Дата рождения 
             - Телефон 
+            - Фото (URL фотографии)
             
             Если информация найдена, заполни соответствующие поля.
             Если информации нет, оставь "null".
             
-            ВАЖНО: возвращай только JSON в таком формате:
-            {{
-                "type": "clarification",
-                "employee": {{
-                    "full_name": "{employee_name}",
-                    "snils": "найденный_снилс_или_null",
-                    "inn": "найденный_инн_или_null",
-                    "position": "найденная_должность_или_null",
-                    "birth_date": "найденная_дата_или_null",
-                    "phone": "найденный_телефон_или_null"
-                }},
-                "certificate": {certificate_name},
-                "status": "new_employee",
-            }}
+                ВАЖНО: возвращай только JSON в таком формате:
+                {{
+                    "type": "clarification",
+                    "employee": {{
+                        "full_name": "{employee_name}",
+                        "snils": "найденный_снилс_или_null",
+                        "inn": "найденный_инн_или_null",
+                        "position": "найденная_должность_или_null",
+                        "birth_date": "найденная_дата_или_null",
+                        "phone": "найденный_телефон_или_null",
+                        "photo": "найденный_url_фото_или_null"
+                    }},
+                    "certificate": {certificate_name},
+                    "status": "new_employee",
+                }}
+                
+                ВАЖНО для статуса:
+                - Если сотрудник новый (id = null) → status = "new_employee"
+                - Если сотрудник существующий (id есть) → status = "existing_employee_with_photo"
 
             Не задавай лишние вопросы, только уточни данные.
             """
@@ -490,6 +520,112 @@ async def updatePerson(order_json):
         log_function_exit("updatePerson", error=error_msg)
         return error_msg
 
+async def updateEmployeeData(order_json):
+    """Обновляет данные существующего сотрудника (включая фото)"""
+    log_function_entry("updateEmployeeData", args=(order_json,))
+    try:
+        import requests
+        
+        employee = order_json.get("employee", {})
+        employee_id = employee.get("id")
+        
+        if not employee_id:
+            error("❌ Не указан ID сотрудника для обновления")
+            log_function_exit("updateEmployeeData", error="Не указан ID сотрудника")
+            return "❌ Ошибка: не указан ID сотрудника для обновления"
+        
+        # Формируем данные для обновления
+        api_data = {
+            "full_name": employee.get("full_name", ""),
+            "position": employee.get("position", ""),
+            "phone": employee.get("phone", ""),
+            "snils": employee.get("snils", ""),
+            "inn": employee.get("inn", ""),
+            "birth_date": employee.get("birth_date", ""),
+            "status": "В ожидании"
+        }
+        
+        # Добавляем фото, если оно есть
+        photo_url = employee.get("photo")
+        if photo_url and photo_url != "null":
+            info(f"Обновляем фото сотрудника: {photo_url}")
+            # Для обновления фото используем multipart/form-data
+            files = {}
+            data = {
+                "full_name": employee.get("full_name", ""),
+                "position": employee.get("position", ""),
+                "phone": employee.get("phone", ""),
+                "snils": employee.get("snils", ""),
+                "inn": employee.get("inn", ""),
+                "birth_date": employee.get("birth_date", ""),
+                "status": "В ожидании"
+            }
+            
+            # Очищаем пустые значения
+            data = {k: v for k, v in data.items() if v and v != "null"}
+            
+            # Скачиваем фото и добавляем как файл
+            try:
+                photo_response = requests.get(photo_url, timeout=10)
+                if photo_response.status_code == 200:
+                    files['photo'] = ('photo.jpg', photo_response.content, 'image/jpeg')
+                    info(f"Фото загружено для обновления: {len(photo_response.content)} байт")
+                else:
+                    error(f"Не удалось загрузить фото: {photo_response.status_code}")
+                    files = None
+            except Exception as e:
+                error(f"Ошибка при загрузке фото: {e}")
+                files = None
+        else:
+            # Если фото нет, используем обычный JSON
+            files = None
+            data = api_data
+        
+        info(f"Обновляю данные сотрудника ID {employee_id}: {json.dumps(data, indent=2, ensure_ascii=False)}")
+        
+        # Отправляем PUT запрос для обновления
+        if files:
+            # Отправляем с файлом
+            response = requests.put(
+                f"http://labor.tetrakom-crm-miniapp.ru/api/people/{employee_id}",
+                headers={
+                    "Accept": "application/json",
+                    "User-Agent": "PolzaAI-Bot/1.0"
+                },
+                data=data,
+                files=files,
+                timeout=30,
+                proxies={"http": None, "https": None}
+            )
+        else:
+            # Отправляем обычный JSON
+            response = requests.put(
+                f"http://labor.tetrakom-crm-miniapp.ru/api/people/{employee_id}",
+                headers={
+                    "Content-Type": "application/json",
+                    "Accept": "application/json",
+                    "User-Agent": "PolzaAI-Bot/1.0"
+                },
+                json=data,
+                timeout=30,
+                proxies={"http": None, "https": None}
+            )
+        
+        if response.status_code == 200 or response.status_code == 201:
+            success(f"✅ Данные сотрудника {employee.get('full_name')} успешно обновлены")
+            log_function_exit("updateEmployeeData", result=f"✅ Данные сотрудника обновлены")
+            return f"✅ Данные сотрудника {employee.get('full_name')} успешно обновлены"
+        else:
+            error(f"Ошибка API при обновлении: {response.status_code} - {response.text}")
+            log_function_exit("updateEmployeeData", error=f"Ошибка API: {response.status_code}")
+            return f"❌ Ошибка при обновлении данных: {response.status_code} - {response.text}"
+            
+    except Exception as e:
+        error_msg = f"❌ Ошибка при обновлении данных сотрудника: {str(e)}"
+        error(error_msg)
+        log_function_exit("updateEmployeeData", error=error_msg)
+        return error_msg
+
 async def addToDatabase(order_json):
     """Добавляет заказ в базу данных"""
     log_function_entry("addToDatabase", args=(order_json,))
@@ -511,23 +647,71 @@ async def addToDatabase(order_json):
             # "photo": "@https://us1.api.pro-talk.ru/get_image/fa165d7a-2322-4081-9068-c12ce86a8bf5.jpg"
         }
         
-        # Очищаем пустые значения
-        api_data = {k: v for k, v in api_data.items() if v and v != "null"}
+        # Добавляем фото, если оно есть
+        photo_url = employee.get("photo")
+        if photo_url and photo_url != "null":
+            info(f"Добавляем фото сотрудника: {photo_url}")
+            # Для создания с фото используем multipart/form-data
+            files = {}
+            data = {
+                "full_name": employee.get("full_name", ""),
+                "position": employee.get("position", ""),
+                "phone": employee.get("phone", ""),
+                "snils": employee.get("snils", ""),
+                "inn": employee.get("inn", ""),
+                "birth_date": employee.get("birth_date", ""),
+                "status": "В ожидании"
+            }
+            
+            # Очищаем пустые значения
+            data = {k: v for k, v in data.items() if v and v != "null"}
+            
+            # Скачиваем фото и добавляем как файл
+            try:
+                photo_response = requests.get(photo_url, timeout=10)
+                if photo_response.status_code == 200:
+                    files['photo'] = ('photo.jpg', photo_response.content, 'image/jpeg')
+                    info(f"Фото загружено для создания: {len(photo_response.content)} байт")
+                else:
+                    error(f"Не удалось загрузить фото: {photo_response.status_code}")
+                    files = None
+            except Exception as e:
+                error(f"Ошибка при загрузке фото: {e}")
+                files = None
+        else:
+            # Если фото нет, используем обычный JSON
+            files = None
+            data = api_data
         
-        info(f"Отправляю данные в API: {json.dumps(api_data, indent=2, ensure_ascii=False)}")
+        info(f"Отправляю данные в API: {json.dumps(data, indent=2, ensure_ascii=False)}")
         
         # Отправляем POST запрос
-        response = requests.post(
-            "http://labor.tetrakom-crm-miniapp.ru/api/people",
-            headers={
-                "Content-Type": "application/json",
-                "Accept": "application/json",
-                "User-Agent": "PolzaAI-Bot/1.0"
-            },
-            json=api_data,
-            timeout=30,  # Увеличиваем таймаут
-            proxies={"http": None, "https": None}
-        )
+        if files:
+            # Отправляем с файлом
+            response = requests.post(
+                "http://labor.tetrakom-crm-miniapp.ru/api/people",
+                headers={
+                    "Accept": "application/json",
+                    "User-Agent": "PolzaAI-Bot/1.0"
+                },
+                data=data,
+                files=files,
+                timeout=30,
+                proxies={"http": None, "https": None}
+            )
+        else:
+            # Отправляем обычный JSON
+            response = requests.post(
+                "http://labor.tetrakom-crm-miniapp.ru/api/people",
+                headers={
+                    "Content-Type": "application/json",
+                    "Accept": "application/json",
+                    "User-Agent": "PolzaAI-Bot/1.0"
+                },
+                json=data,
+                timeout=30,
+                proxies={"http": None, "https": None}
+            )
         
         if response.status_code == 200 or response.status_code == 201:
             success("Заказ успешно добавлен в базу данных")
@@ -606,10 +790,13 @@ async def order_dispatcher(messages, chat_history):
                 2. clarification(order_data) — уточнение данных заказа
 
                 ПРАВИЛА:
+                - ВАЖНО: Если в истории чата есть уточнение от бота (например, "Пожалуйста, укажите...", "предоставьте фото...") и пользователь отправляет фото или текст → это ОБЯЗАТЕЛЬНО ответ на уточнение, вызывай clarification()
                 - Если пользователь предоставляет ПОЛНЫЕ данные сотрудника (ФИО, СНИЛС, ИНН, телефон, дата рождения, должность) и просит удостоверение → вызывай makeOrderFormat()
                 - Если пользователь отвечает на вопрос (например, "монтажник" на вопрос о должности) → вызывай clarification() с данными из предыдущего заказа
                 - Если пользователь уточняет детали существующего заказа → вызывай clarification()
                 - НИКОГДА не отвечай обычным текстом, ВСЕГДА используй функции!
+                
+                **ПРИОРИТЕТ:** Контекст истории чата ВАЖНЕЕ ключевых слов в последнем сообщении!
 
                 - Если пользователь хочет СДЕЛАТЬ НОВЫЙ ЗАКАЗ → вызывай makeOrderFormat().
                     • Обязательно верни JSON в формате:
@@ -702,6 +889,9 @@ async def order_dispatcher(messages, chat_history):
                                         if parsed_result.get("status") == "new_employee":
                                             # Новый сотрудник - добавляем в базу
                                             await addToDatabase(parsed_result)
+                                        elif parsed_result.get("status") == "existing_employee_with_photo":
+                                            # Существующий сотрудник с новым фото - обновляем данные и сертификаты
+                                            await updateEmployeeData(parsed_result)
                                             await updatePerson(parsed_result)
                                         else:
                                             # Существующий сотрудник - только обновляем сертификаты
@@ -724,6 +914,9 @@ async def order_dispatcher(messages, chat_history):
                                     if result.get("status") == "new_employee":
                                         # Новый сотрудник - добавляем в базу
                                         await addToDatabase(result)
+                                    elif result.get("status") == "existing_employee_with_photo":
+                                        # Существующий сотрудник с новым фото - обновляем данные и сертификаты
+                                        await updateEmployeeData(result)
                                         await updatePerson(result)
                                     else:
                                         # Существующий сотрудник - только обновляем сертификаты
@@ -736,6 +929,10 @@ async def order_dispatcher(messages, chat_history):
                             # Проверяем статус сотрудника
                             if result.get("status") == "new_employee":
                                 await addToDatabase(result)
+                            elif result.get("status") == "existing_employee_with_photo":
+                                # Существующий сотрудник с новым фото - обновляем данные и сертификаты
+                                await updateEmployeeData(result)
+                                await updatePerson(result)
                             else:
                                 # Существующий сотрудник - только обновляем сертификаты
                                 await updatePerson(result)
@@ -770,6 +967,9 @@ async def order_dispatcher(messages, chat_history):
                                         if parsed_result.get("status") == "new_employee":
                                             # Новый сотрудник - добавляем в базу
                                             await addToDatabase(parsed_result)
+                                        elif parsed_result.get("status") == "existing_employee_with_photo":
+                                            # Существующий сотрудник с новым фото - обновляем данные и сертификаты
+                                            await updateEmployeeData(parsed_result)
                                             await updatePerson(parsed_result)
                                         else:
                                             # Существующий сотрудник - только обновляем сертификаты
@@ -791,6 +991,9 @@ async def order_dispatcher(messages, chat_history):
                                     if result.get("status") == "new_employee":
                                         # Новый сотрудник - добавляем в базу
                                         await addToDatabase(result)
+                                    elif result.get("status") == "existing_employee_with_photo":
+                                        # Существующий сотрудник с новым фото - обновляем данные и сертификаты
+                                        await updateEmployeeData(result)
                                         await updatePerson(result)
                                     else:
                                         # Существующий сотрудник - только обновляем сертификаты
@@ -892,8 +1095,8 @@ async def order_dispatcher(messages, chat_history):
         except json.JSONDecodeError as e:
             log_function_exit("order_dispatcher", error=f"Ошибка парсинга JSON: {str(e)}\nОтвет ИИ: {msg.content}")
             return f"❌ Ошибка парсинга JSON: {str(e)}\nОтвет ИИ: {msg.content}"
+            
     except Exception as e:
-
         error_msg = f"❌ КРИТИЧЕСКАЯ ОШИБКА в order_dispatcher: {str(e)}"
         error(error_msg)
         log_function_exit("order_dispatcher", error=error_msg)
