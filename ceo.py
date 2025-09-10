@@ -104,7 +104,7 @@ async def ceo_dispatcher(messages):
         if "order" in decision:
             print("📋 Запускаю order_dispatcher для заказа удостоверений")
             result = await connect_dispatcher(messages, messages_with_ceo_chat_history)
-            print(f"🎯 CEO результат order_dispatcher: {result.get("type")}")
+            print(f"🎯 CEO результат order_dispatcher: {result.get('type')}")
             type_of_request = result.get("type")
             ceo_chat_history.append({"role": "assistant", "content": result.get("chat_history_order")})
             return result.get("message")
