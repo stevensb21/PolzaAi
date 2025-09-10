@@ -523,6 +523,11 @@ def main():
                 time.sleep(retry_delay)
             
             print("🤖 Бот запущен...")
+            try:
+                bot.remove_webhook()
+                info("✅ Webhook удален успешно")
+            except Exception as e:
+                info(f"ℹ️ Webhook не был активен или уже удален: {e}")
             bot.polling(
                 none_stop=True,
                 interval=1,

@@ -19,12 +19,13 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Копируем весь проект
 COPY . .
 
-# Создаем директории для логов и изображений
-RUN mkdir -p logs images
-
 # Создаем пользователя для безопасности
-RUN useradd --create-home --shell /bin/bash app && \
+RUN useradd --create-home --shell /bin/bash app
+
+# Создаем директории для логов и изображений
+RUN mkdir -p logs images && \
     chown -R app:app /app
+
 USER app
 
 # Открываем порт (если понадобится для веб-интерфейса)
