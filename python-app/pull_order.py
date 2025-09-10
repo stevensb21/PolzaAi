@@ -227,6 +227,9 @@ async def clarification(messages, order_json):
         employee["photo"] = photo_url
         order_json["employee"] = employee
         info(f"Добавлено фото в заказ: {photo_url}")
+        info(f"Обновленный order_json: {json.dumps(order_json, indent=2, ensure_ascii=False)}")
+    else:
+        info(f"Фото не найдено в сообщении. Текущий order_json: {json.dumps(order_json, indent=2, ensure_ascii=False)}")
     
     response = await client.chat.completions.create(
         model="openai/gpt-4.1-mini",
@@ -236,6 +239,9 @@ async def clarification(messages, order_json):
 
                     Твоя задача — уточнить данные у пользователя.
                     Проверь все ли данные в employee есть (включая фото) и если нет, уточни у пользователя запиши сообщение в поле message.
+                    
+                    ВАЖНО: Если в employee есть поле "photo" и оно НЕ равно null, null, "null" или пустой строке, то фото ЕСТЬ!
+                    
                     Если все данные есть (включая фото), верни order_json, но измени в нем type на "readyorder".
                     Если данные неполные (включая отсутствие фото), верни order_json, но измени в нем type на "clarification".
                     
@@ -277,7 +283,7 @@ async def clarification(messages, order_json):
     log_function_exit("clarification", result=msg.content)
     return msg.content
 
-def format_message(message):
+async def format_message(message):
     """Форматирует сообщение"""
     # Форматируем дату рождения
     birth_date = message.get("employee", {}).get("birth_date")
@@ -295,8 +301,24 @@ def format_message(message):
     else:
         formatted_date = "не указана"
     
+    # Получаем полную информацию о сертификатах
+    certificate_names = message.get("certificate", [])
+    info(f"Названия сертификатов для получения описаний: {certificate_names}")
+    try:
+        from bot import get_certificate_details
+        certificate_details = await get_certificate_details(certificate_names)
+        info(f"Полученные детали сертификатов: {certificate_details}")
+        
+        # Формируем список сертификатов с описаниями
+        certificates_text = ""
+        for cert in certificate_details:
+            certificates_text += f"• {cert['name']} - {cert['description']}\n"
+    except Exception as e:
+        error(f"Ошибка при получении описаний сертификатов: {e}")
+        certificates_text = f"{message.get('certificate')}"
+    
     return {
-        "message": f""" Заказ оформлен и отправлен в базу данных \n для {message.get("employee", {}).get("full_name")} \n с удостоверением {message.get("certificate")}
+        "message": f""" Заказ оформлен и отправлен в базу данных \n для {message.get("employee", {}).get("full_name")} \n с удостоверениями:\n{certificates_text}
         \n СНИЛС: {message.get("employee", {}).get("snils")} \n ИНН: {message.get("employee", {}).get("inn")} \n Должность: {message.get("employee", {}).get("position")} \n Дата рождения: {formatted_date} \n Телефон: {message.get("employee", {}).get("phone")} """
     }
 
@@ -511,6 +533,30 @@ async def updatePerson(order_json):
                     error(f"Ошибка API для сертификата {id_certificate}: {response.status_code} - {response.text}")
         
         success(f"Все сертификаты обработаны для сотрудника {employee.get('full_name', 'Неизвестно')}")
+        
+        # Отправляем уведомления о готовой заявке
+        try:
+            from bot import send_ready_order_notification
+            # Используем существующий event loop или создаем новый
+            try:
+                loop = asyncio.get_event_loop()
+                if loop.is_running():
+                    # Если loop уже запущен, создаем задачу
+                    asyncio.create_task(send_ready_order_notification(order_json))
+                else:
+                    # Если loop не запущен, запускаем его
+                    loop.run_until_complete(send_ready_order_notification(order_json))
+            except RuntimeError:
+                # Если нет активного loop, создаем новый
+                loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(loop)
+                try:
+                    loop.run_until_complete(send_ready_order_notification(order_json))
+                finally:
+                    loop.close()
+        except Exception as e:
+            error(f"Ошибка при отправке уведомлений: {e}")
+        
         log_function_exit("updatePerson", result=f"✅ Сертификаты успешно добавлены для {employee.get('full_name', 'Неизвестно')}")
         return f"✅ Сертификаты успешно добавлены для {employee.get('full_name', 'Неизвестно')}"
             
@@ -569,6 +615,8 @@ async def updateEmployeeData(order_json):
                 photo_response = requests.get(photo_url, timeout=10)
                 if photo_response.status_code == 200:
                     files['photo'] = ('photo.jpg', photo_response.content, 'image/jpeg')
+                    # Сохраняем полный URL фото в данных для API
+                    data['photo'] = photo_url
                     info(f"Фото загружено для обновления: {len(photo_response.content)} байт")
                 else:
                     error(f"Не удалось загрузить фото: {photo_response.status_code}")
@@ -647,41 +695,10 @@ async def addToDatabase(order_json):
             # "photo": "@https://us1.api.pro-talk.ru/get_image/fa165d7a-2322-4081-9068-c12ce86a8bf5.jpg"
         }
         
-        # Добавляем фото, если оно есть
-        photo_url = employee.get("photo")
-        if photo_url and photo_url != "null":
-            info(f"Добавляем фото сотрудника: {photo_url}")
-            # Для создания с фото используем multipart/form-data
-            files = {}
-            data = {
-                "full_name": employee.get("full_name", ""),
-                "position": employee.get("position", ""),
-                "phone": employee.get("phone", ""),
-                "snils": employee.get("snils", ""),
-                "inn": employee.get("inn", ""),
-                "birth_date": employee.get("birth_date", ""),
-                "status": "В ожидании"
-            }
-            
-            # Очищаем пустые значения
-            data = {k: v for k, v in data.items() if v and v != "null"}
-            
-            # Скачиваем фото и добавляем как файл
-            try:
-                photo_response = requests.get(photo_url, timeout=10)
-                if photo_response.status_code == 200:
-                    files['photo'] = ('photo.jpg', photo_response.content, 'image/jpeg')
-                    info(f"Фото загружено для создания: {len(photo_response.content)} байт")
-                else:
-                    error(f"Не удалось загрузить фото: {photo_response.status_code}")
-                    files = None
-            except Exception as e:
-                error(f"Ошибка при загрузке фото: {e}")
-                files = None
-        else:
-            # Если фото нет, используем обычный JSON
-            files = None
-            data = api_data
+        # Сначала создаем сотрудника без фото (используем JSON)
+        info(f"Создаем сотрудника без фото: {api_data}")
+        data = api_data
+        files = None
         
         info(f"Отправляю данные в API: {json.dumps(data, indent=2, ensure_ascii=False)}")
         
@@ -743,10 +760,45 @@ async def addToDatabase(order_json):
                 }
                 
                 info(f"order_with_id for updatePerson: {order_with_id}")
+                
+                # Если есть фото, обновляем сотрудника с фото
+                photo_url = employee.get("photo")
+                if photo_url and photo_url != "null":
+                    info(f"Обновляем сотрудника с фото: {photo_url}")
+                    # Добавляем фото в order_with_id
+                    order_with_id["employee"]["photo"] = photo_url
+                    
+                    # Обновляем данные сотрудника с фото
+                    await updateEmployeeData(order_with_id)
+                
+                # Вызываем updatePerson для добавления сертификатов
                 await updatePerson(order_with_id)
             else:
                 error(f"❌ Не удалось получить ID созданного сотрудника: {created_employee_id}")
                 error(f"Ответ API: {people_json}")
+            
+            # Отправляем уведомления о готовой заявке
+            try:
+                from bot import send_ready_order_notification
+                # Используем существующий event loop или создаем новый
+                try:
+                    loop = asyncio.get_event_loop()
+                    if loop.is_running():
+                        # Если loop уже запущен, создаем задачу
+                        asyncio.create_task(send_ready_order_notification(order_json))
+                    else:
+                        # Если loop не запущен, запускаем его
+                        loop.run_until_complete(send_ready_order_notification(order_json))
+                except RuntimeError:
+                    # Если нет активного loop, создаем новый
+                    loop = asyncio.new_event_loop()
+                    asyncio.set_event_loop(loop)
+                    try:
+                        loop.run_until_complete(send_ready_order_notification(order_json))
+                    finally:
+                        loop.close()
+            except Exception as e:
+                error(f"Ошибка при отправке уведомлений: {e}")
             
             log_function_exit("addToDatabase", result=f"✅ Заказ для {employee.get('full_name')} успешно добавлен в базу данных со статусом 'В ожидании'")
             return f"✅ Заказ для {employee.get('full_name')} успешно добавлен в базу данных со статусом 'В ожидании'"
@@ -897,9 +949,10 @@ async def order_dispatcher(messages, chat_history):
                                             # Существующий сотрудник - только обновляем сертификаты
                                             await updatePerson(parsed_result)
                                         
-                                        chat_history_order.append({"role": "assistant", "content": json.dumps(format_message(parsed_result), ensure_ascii=False)})
-                                        log_function_exit("order_dispatcher", result=format_message(parsed_result).get("message"))
-                                        return format_message(parsed_result).get("message")
+                                        formatted_result = await format_message(parsed_result)
+                                        chat_history_order.append({"role": "assistant", "content": json.dumps(formatted_result, ensure_ascii=False)})
+                                        log_function_exit("order_dispatcher", result=formatted_result.get("message"))
+                                        return formatted_result.get("message")
                                         
                                 except json.JSONDecodeError:
                                     log_function_exit("order_dispatcher", error=f"Ошибка парсинга JSON от clarification: {result}")
@@ -922,9 +975,10 @@ async def order_dispatcher(messages, chat_history):
                                         # Существующий сотрудник - только обновляем сертификаты
                                         await updatePerson(result)
                                     
-                                    chat_history_order.append({"role": "assistant", "content": json.dumps(format_message(result), ensure_ascii=False)})
-                                    log_function_exit("order_dispatcher", result=format_message(result).get("message"))
-                                    return format_message(result).get("message")
+                                    formatted_result = await format_message(result)
+                                    chat_history_order.append({"role": "assistant", "content": json.dumps(formatted_result, ensure_ascii=False)})
+                                    log_function_exit("order_dispatcher", result=formatted_result.get("message"))
+                                    return formatted_result.get("message")
                         else:
                             # Проверяем статус сотрудника
                             if result.get("status") == "new_employee":
@@ -938,9 +992,10 @@ async def order_dispatcher(messages, chat_history):
                                 await updatePerson(result)
 
                             
-                            chat_history_order.append({"role": "assistant", "content": json.dumps(format_message(result), ensure_ascii=False)})
-                            log_function_exit("order_dispatcher", result=format_message(result).get("message"))
-                            return format_message(result).get("message")
+                            formatted_result = await format_message(result)
+                            chat_history_order.append({"role": "assistant", "content": json.dumps(formatted_result, ensure_ascii=False)})
+                            log_function_exit("order_dispatcher", result=formatted_result.get("message"))
+                            return formatted_result.get("message")
                     except json.JSONDecodeError:
                         log_function_exit("order_dispatcher", error="Неверные аргументы для makeOrderFormat")
                         return "❌ Ошибка: неверные аргументы для makeOrderFormat"
@@ -976,8 +1031,9 @@ async def order_dispatcher(messages, chat_history):
                                             await updatePerson(parsed_result)
                                         
                                         chat_history_order.append({"role": "assistant", "content": json.dumps(parsed_result, ensure_ascii=False)})
-                                        log_function_exit("order_dispatcher", result=format_message(parsed_result).get("message"))
-                                        return format_message(parsed_result).get("message")
+                                        formatted_result = await format_message(parsed_result)
+                                        log_function_exit("order_dispatcher", result=formatted_result.get("message"))
+                                        return formatted_result.get("message")
                                 except json.JSONDecodeError:
                                     log_function_exit("order_dispatcher", error=f"Ошибка парсинга JSON от clarification: {result}")
                                     return f"❌ Ошибка парсинга JSON от clarification: {result}"
@@ -1000,8 +1056,9 @@ async def order_dispatcher(messages, chat_history):
                                         await updatePerson(result)
                                     
                                     chat_history_order.append({"role": "assistant", "content": json.dumps(result, ensure_ascii=False)})
-                                    log_function_exit("order_dispatcher", result=format_message(result).get("message"))
-                                    return format_message(result).get("message")
+                                    formatted_result = await format_message(result)
+                                    log_function_exit("order_dispatcher", result=formatted_result.get("message"))
+                                    return formatted_result.get("message")
                         else:
                         
                             log_function_exit("order_dispatcher", error="Не указаны данные заказа для уточнения")

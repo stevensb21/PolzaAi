@@ -1,0 +1,47 @@
+services:
+  polza-ai-bot:
+    build: .
+    container_name: polza-ai-bot
+    restart: unless-stopped
+    environment:
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - OPENAI_BASE_URL=${OPENAI_BASE_URL}
+    volumes:
+      # Монтируем логи для сохранения
+      - ./logs:/app/logs
+      # Монтируем изображения для колонтитулов
+      - ./images:/app/images
+      # Монтируем .env файл
+      - ./.env:/app/.env:ro
+    networks:
+      - polza-network
+    depends_on:
+      - redis
+    healthcheck:
+      test: ["CMD", "python", "-c", "import requests; requests.get('https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/getMe')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  redis:
+    image: redis:7-alpine
+    container_name: polza-ai-redis
+    restart: unless-stopped
+    volumes:
+      - redis_data:/data
+    networks:
+      - polza-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+networks:
+  polza-network:
+    driver: bridge
+
+volumes:
+  redis_data:

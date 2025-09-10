@@ -395,6 +395,7 @@ async def sort_employee(employee):
                             "snils": "СНИЛС",
                             "inn": "ИНН",
                             "birth_date": "Дата рождения",
+                            "photo": "Фото сотрудника",
                             "all_certificates": [
                                 {
                                 "id": 2,
@@ -489,7 +490,7 @@ async def search_dispatcher(messages: list, chat_history):
         
         response = await client.chat.completions.create(
             model="openai/gpt-4.1-mini",
-                            messages=all_messages,
+            messages=all_messages,
             tools=tools
         )
 
@@ -501,13 +502,14 @@ async def search_dispatcher(messages: list, chat_history):
 
         msg = response.choices[0].message
 
-                    # Если модель решила вызвать tool
+        # Если модель решила вызвать tool
         if msg.tool_calls:
             for tool_call in msg.tool_calls:
                 try:
                     func_name = tool_call.function.name
                     search_log(f"ИИ вызывает функцию: {func_name}")         
-                            # Безопасный парсинг аргументов
+                    
+                    # Безопасный парсинг аргументов
                     try:
                         args = json.loads(tool_call.function.arguments or "{}")
                     except json.JSONDecodeError as e:
@@ -521,6 +523,9 @@ async def search_dispatcher(messages: list, chat_history):
                         result = await sort_employee(args.get("employee", ""))
                         chat_history_search.append({"role": "assistant", "content": result})
                         response_text = format_employee_info(result)
+                        success(f"Функция {func_name} выполнена успешно")
+                        log_function_exit("search_dispatcher", result=response_text)
+                        return response_text
                     else:
                         response_text = f"❌ Неизвестная функция: {func_name}"
                         success(f"Функция {func_name} выполнена успешно")
@@ -533,16 +538,16 @@ async def search_dispatcher(messages: list, chat_history):
                     log_function_exit("search_dispatcher", error=error_msg)
                     return error_msg
 
-                        # Если не было вызова функций, возвращаем обычный ответ
-                if not msg.content:
-                    error_msg = "❌ Ошибка: ИИ не предоставил ответ"
-                    error(error_msg)
-                    log_function_exit("search_dispatcher", error=error_msg)
-                    return error_msg
+        # Если не было вызова функций, возвращаем обычный ответ
+        if not msg.content:
+            error_msg = "❌ Ошибка: ИИ не предоставил ответ"
+            error(error_msg)
+            log_function_exit("search_dispatcher", error=error_msg)
+            return error_msg
                     
-                success("ИИ ответил без вызова функций")
-                log_function_exit("search_dispatcher", result=msg.content)
-                return msg.content
+        success("ИИ ответил без вызова функций")
+        log_function_exit("search_dispatcher", result=msg.content)
+        return msg.content
 
     except Exception as e:
         error_msg = f"❌ КРИТИЧЕСКАЯ ОШИБКА в search_dispatcher: {str(e)}"
