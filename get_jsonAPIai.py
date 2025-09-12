@@ -366,16 +366,13 @@ async def sort_employee(employee):
     # Извлекаем массив data из ответа API
     if isinstance(api_response, dict) and "data" in api_response:
         json_employee = api_response["data"]
-        debug(f"Извлечен массив data из API ответа, количество элементов: {len(json_employee) if isinstance(json_employee, list) else 'не список'}")
     else:
         # Fallback для старого формата (если API вернет просто массив)
         json_employee = api_response
-        debug(f"Используется fallback, тип данных: {type(json_employee)}")
     
     # Безопасно сериализуем JSON
     try:
         json_content = json.dumps(json_employee, ensure_ascii=False) if json_employee else "{}"
-        debug(f"JSON для передачи в AI: {json_content[:200]}...")
     except (TypeError, ValueError) as e:
         error_msg = f"Ошибка сериализации JSON: {str(e)}"
         error(error_msg)

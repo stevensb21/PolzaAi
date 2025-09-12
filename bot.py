@@ -46,7 +46,10 @@ bot = telebot.TeleBot(TOKEN)
 
 # Словарь для хранения ID пользователей, которым нужно отправлять заявки
 # Формат: {user_id: {"name": "Имя", "chat_id": chat_id}}
-notification_users = {"8316311496": {"name": "Лариса", "chat_id": "8316311496"}}
+notification_users = {
+    "8316311496": {"name": "Лариса", "chat_id": "8316311496"},
+    "1174287803": {"name": "Пользователь 1174287803", "chat_id": "1174287803"}
+}
 
 def add_notification_user(user_id, name, chat_id):
     """Добавляет пользователя в список для уведомлений о готовых заявках"""
