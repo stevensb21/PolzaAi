@@ -256,9 +256,9 @@ async def call_external_api():
     """Вызывает внешний API с надежной обработкой ошибок"""
     log_function_entry("call_external_api")
     try:
-        api(f"Выполняю запрос к API: {BASE_URL}/api/people")
+        api(f"Выполняю запрос к API: {BASE_URL}/api/people/compact")
         resp = requests.get(
-            f"{BASE_URL}/api/people?per_page=1000", 
+            f"{BASE_URL}/api/people/compact", 
             timeout=30,  # Увеличиваем таймаут
             proxies={"http": None, "https": None},
             headers={'User-Agent': 'PolzaAI-Bot/1.0'}
@@ -270,7 +270,7 @@ async def call_external_api():
             log_function_exit("call_external_api", error=error_msg)
             return {
                 "error": error_msg,
-                "details": f"URL: {BASE_URL}/api/people"
+                "details": f"URL: {BASE_URL}/api/people/compact"
             }
         
         try:
@@ -293,7 +293,7 @@ async def call_external_api():
         log_function_exit("call_external_api", error=error_msg)
         return {
             "error": error_msg,
-            "details": f"URL: {BASE_URL}/api/people"
+            "details": f"URL: {BASE_URL}/api/people/compact"
         }
     except requests.exceptions.ConnectionError as e:
         error_msg = f"Ошибка подключения к API: {str(e)}"
@@ -301,7 +301,7 @@ async def call_external_api():
         log_function_exit("call_external_api", error=error_msg)
         return {
             "error": error_msg,
-            "details": f"URL: {BASE_URL}/api/people"
+            "details": f"URL: {BASE_URL}/api/people/compact"
         }
     except requests.exceptions.RequestException as e:
         error_msg = f"Ошибка HTTP запроса: {str(e)}"
@@ -309,7 +309,7 @@ async def call_external_api():
         log_function_exit("call_external_api", error=error_msg)
         return {
             "error": error_msg,
-            "details": f"URL: {BASE_URL}/api/people"
+            "details": f"URL: {BASE_URL}/api/people/compact"
         }
     except Exception as e:
         error_msg = f"Неизвестная ошибка в call_external_api: {str(e)}"
@@ -317,7 +317,7 @@ async def call_external_api():
         log_function_exit("call_external_api", error=error_msg)
         return {
             "error": error_msg,
-            "details": f"URL: {BASE_URL}/api/people"
+            "details": f"URL: {BASE_URL}/api/people/compact"
         }
 
 async def sort_employee(employee):
@@ -376,7 +376,7 @@ async def sort_employee(employee):
         }
         
     response = await client.chat.completions.create(
-        model="openai/gpt-4.1",
+        model="openai/gpt-4.1-mini",
         messages=[
             {"role": "system", "content": """
 

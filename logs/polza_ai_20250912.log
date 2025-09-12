@@ -1,52 +1,250 @@
-2025-09-12 02:50:43 | DEBUG    | logger.py:66 | 🚀 Вход в функцию: main
-2025-09-12 02:50:43 | INFO     | logger.py:89 | ℹ️ ✅ Webhook удален успешно
-2025-09-12 04:14:26 | ERROR    | logger.py:97 | ❌ 
-  ❌ Неожиданная ошибка (попытка 1/5): HTTPSConnectionPool(host='api.telegram.org', port=443): Read
-  timed out. (read timeout=25)
-2025-09-12 04:14:26 | INFO     | logger.py:89 | ℹ️ ⏳ Ожидание 5 секунд перед следующей попыткой...
-2025-09-12 04:14:26 | INFO     | logger.py:89 | ℹ️ 🔄 Попытка переподключения 1/5
-2025-09-12 04:14:31 | INFO     | logger.py:89 | ℹ️ ✅ Webhook удален успешно
-2025-09-12 04:14:52 | ERROR    | logger.py:97 | ❌ 
-  ❌ Неожиданная ошибка (попытка 2/5): HTTPSConnectionPool(host='api.telegram.org', port=443): Max
-  retries exceeded with url:
-  /bot8204433104:AAGTJwvACUkTIMpFLg4_6umMfh-v6cBtcQs/getUpdates?offset=1&timeout=20 (Caused by
-  NewConnectionError('<urllib3.connection.HTTPSConnection object at 0x7fa5900c4950>: Failed to
-  establish a new connection: [Errno 101] Network is unreachable'))
-2025-09-12 04:14:52 | INFO     | logger.py:89 | ℹ️ ⏳ Ожидание 5 секунд перед следующей попыткой...
-2025-09-12 04:14:52 | INFO     | logger.py:89 | ℹ️ 🔄 Попытка переподключения 2/5
-2025-09-12 04:14:58 | INFO     | logger.py:89 | ℹ️ ✅ Webhook удален успешно
-2025-09-12 04:27:43 | ERROR    | logger.py:97 | ❌ 
-  ❌ Неожиданная ошибка (попытка 3/5): HTTPSConnectionPool(host='api.telegram.org', port=443): Read
-  timed out. (read timeout=25)
-2025-09-12 04:27:43 | INFO     | logger.py:89 | ℹ️ ⏳ Ожидание 5 секунд перед следующей попыткой...
-2025-09-12 04:27:43 | INFO     | logger.py:89 | ℹ️ 🔄 Попытка переподключения 3/5
-2025-09-12 04:27:48 | INFO     | logger.py:89 | ℹ️ ✅ Webhook удален успешно
-2025-09-12 08:48:16 | ERROR    | logger.py:97 | ❌ 
-  ❌ Неожиданная ошибка (попытка 4/5): HTTPSConnectionPool(host='api.telegram.org', port=443): Read
-  timed out. (read timeout=25)
-2025-09-12 08:48:16 | INFO     | logger.py:89 | ℹ️ ⏳ Ожидание 5 секунд перед следующей попыткой...
-2025-09-12 08:48:16 | INFO     | logger.py:89 | ℹ️ 🔄 Попытка переподключения 4/5
-2025-09-12 08:48:22 | INFO     | logger.py:89 | ℹ️ ✅ Webhook удален успешно
-2025-09-12 08:49:09 | ERROR    | logger.py:97 | ❌ 
-  ❌ Неожиданная ошибка (попытка 5/5): HTTPSConnectionPool(host='api.telegram.org', port=443): Read
-  timed out. (read timeout=25)
-2025-09-12 08:49:09 | CRITICAL | logger.py:101 | 🚨 ❌ КРИТИЧЕСКАЯ ОШИБКА: Превышено максимальное количество попыток
-2025-09-12 08:49:09 | DEBUG    | logger.py:80 | 
-  ❌ Выход из функции main с ошибкой: ❌ Неожиданная ошибка (попытка 5/5):
-  HTTPSConnectionPool(host='api.telegram.org', port=443): Read timed out. (read timeout=25)
-2025-09-12 08:49:11 | DEBUG    | logger.py:66 | 🚀 Вход в функцию: main
-2025-09-12 08:49:11 | INFO     | logger.py:89 | ℹ️ ✅ Webhook удален успешно
-2025-09-12 08:56:01 | ERROR    | logger.py:97 | ❌ 
-  ❌ Неожиданная ошибка (попытка 1/5): HTTPSConnectionPool(host='api.telegram.org', port=443): Read
-  timed out. (read timeout=25)
-2025-09-12 08:56:01 | INFO     | logger.py:89 | ℹ️ ⏳ Ожидание 5 секунд перед следующей попыткой...
-2025-09-12 08:56:01 | INFO     | logger.py:89 | ℹ️ 🔄 Попытка переподключения 1/5
-2025-09-12 08:56:06 | INFO     | logger.py:89 | ℹ️ 
-  ℹ️ Webhook не был активен или уже удален: ('Connection aborted.', RemoteDisconnected('Remote end
-  closed connection without response'))
-2025-09-12 09:37:59 | ERROR    | logger.py:97 | ❌ 
-  ❌ Неожиданная ошибка (попытка 2/5): HTTPSConnectionPool(host='api.telegram.org', port=443): Read
-  timed out. (read timeout=25)
-2025-09-12 09:37:59 | INFO     | logger.py:89 | ℹ️ ⏳ Ожидание 5 секунд перед следующей попыткой...
-2025-09-12 09:37:59 | INFO     | logger.py:89 | ℹ️ 🔄 Попытка переподключения 2/5
-2025-09-12 09:38:04 | INFO     | logger.py:89 | ℹ️ ✅ Webhook удален успешно
+2025-09-12 14:29:09 | DEBUG    | logger.py:80 | ✅ Выход из функции main
+  Результат: Бот запущен успешно
+2025-09-12 14:29:18 | DEBUG    | logger.py:66 | 🚀 Вход в функцию: main
+2025-09-12 14:29:19 | INFO     | logger.py:89 | ℹ️ ✅ Webhook удален успешно
+2025-09-12 14:29:23 | DEBUG    | logger.py:66 | 🚀 Вход в функцию: handle_message
+  Аргументы: ('Егоров Андрей Федорович',)
+2025-09-12 14:29:24 | DEBUG    | logger.py:66 | 
+  🚀 Вход в функцию: ceo_dispatcher Аргументы: [{'role': 'user', 'content': 'Егоров Андрей Федорович'}]
+2025-09-12 14:29:26 | INFO     | logger.py:89 | ℹ️ ceo_dispatcher, decision: search
+2025-09-12 14:29:26 | INFO     | logger.py:89 | ℹ️ ceo_dispatcher, decision после проверки type_of_request: search, 
+2025-09-12 14:29:26 | DEBUG    | logger.py:66 | 
+  🚀 Вход в функцию: connect_search_dispatcher Аргументы: ([{'role': 'user', 'content': 'Егоров Андрей
+  Федорович'}], [{'role': 'user', 'content': 'Егоров Андрей Федорович'}])
+2025-09-12 14:29:26 | DEBUG    | logger.py:66 | 
+  🚀 Вход в функцию: search_dispatcher Аргументы: ([{'role': 'user', 'content': 'Егоров Андрей
+  Федорович'}], [{'role': 'user', 'content': 'Егоров Андрей Федорович'}])
+2025-09-12 14:29:26 | INFO     | logger.py:113 | 🔍 Отправляю запрос к ИИ (сообщений: 1)
+2025-09-12 14:29:27 | INFO     | logger.py:113 | 🔍 ИИ вызывает функцию: sort_employee
+2025-09-12 14:29:27 | INFO     | logger.py:113 | 🔍 Выполняю sort_employee с аргументом: Егоров Андрей Федорович
+2025-09-12 14:29:27 | DEBUG    | logger.py:66 | 🚀 Вход в функцию: sort_employee
+  Аргументы: ('Егоров Андрей Федорович',)
+2025-09-12 14:29:27 | INFO     | logger.py:113 | 🔍 Ищу сотрудников по фильтру: 'Егоров Андрей Федорович'
+2025-09-12 14:29:27 | DEBUG    | logger.py:66 | 🚀 Вход в функцию: call_external_api
+2025-09-12 14:29:27 | INFO     | logger.py:125 | 🌐 Выполняю запрос к API: http://labor.tetrakom-crm-miniapp.ru/api/people
+2025-09-12 14:29:28 | INFO     | logger.py:125 | 🌐 API запрос успешен, получено 1210089 символов
+2025-09-12 14:29:28 | DEBUG    | logger.py:80 | ✅ Выход из функции call_external_api
+  Результат: 3
+2025-09-12 14:29:34 | ERROR    | logger.py:97 | ❌ ИИ вернул пустой результат
+2025-09-12 14:29:34 | DEBUG    | logger.py:80 | ❌ Выход из функции sort_employee с ошибкой: ИИ вернул пустой результат
+2025-09-12 14:29:34 | ERROR    | logger.py:97 | ❌ Ошибка в sort_employee: ❌ Ошибка: ИИ не смог найти сотрудников по запросу
+2025-09-12 14:29:34 | DEBUG    | logger.py:80 | ❌ Выход из функции search_dispatcher с ошибкой: ❌ Ошибка: ИИ не смог найти сотрудников по запросу
+2025-09-12 14:29:34 | INFO     | logger.py:105 | ✅ 
+  Результат поиска сотрудников connect_search_dispatcher: ❌ Ошибка: ИИ не смог найти сотрудников по
+  запросу
+2025-09-12 14:29:34 | DEBUG    | logger.py:80 | 
+  ✅ Выход из функции connect_search_dispatcher Результат: {'type': 'searchclar', 'message': '❌ Ошибка:
+  ИИ не смог найти сотрудников по запросу', 'chat_history_search': '[]'}
+2025-09-12 14:29:34 | DEBUG    | logger.py:80 | ✅ Выход из функции handle_message
+  Результат: Сообщение обработано успешно
+2025-09-12 14:30:54 | DEBUG    | logger.py:80 | ✅ Выход из функции main
+  Результат: Бот запущен успешно
+2025-09-12 14:31:02 | DEBUG    | logger.py:66 | 🚀 Вход в функцию: main
+2025-09-12 14:31:03 | INFO     | logger.py:89 | ℹ️ ✅ Webhook удален успешно
+2025-09-12 14:31:06 | DEBUG    | logger.py:66 | 🚀 Вход в функцию: handle_message
+  Аргументы: ('Егоров Андрей Федорович',)
+2025-09-12 14:31:07 | DEBUG    | logger.py:66 | 
+  🚀 Вход в функцию: ceo_dispatcher Аргументы: [{'role': 'user', 'content': 'Егоров Андрей Федорович'}]
+2025-09-12 14:31:08 | INFO     | logger.py:89 | ℹ️ ceo_dispatcher, decision: search
+2025-09-12 14:31:08 | INFO     | logger.py:89 | ℹ️ ceo_dispatcher, decision после проверки type_of_request: search, 
+2025-09-12 14:31:08 | DEBUG    | logger.py:66 | 
+  🚀 Вход в функцию: connect_search_dispatcher Аргументы: ([{'role': 'user', 'content': 'Егоров Андрей
+  Федорович'}], [{'role': 'user', 'content': 'Егоров Андрей Федорович'}])
+2025-09-12 14:31:08 | DEBUG    | logger.py:66 | 
+  🚀 Вход в функцию: search_dispatcher Аргументы: ([{'role': 'user', 'content': 'Егоров Андрей
+  Федорович'}], [{'role': 'user', 'content': 'Егоров Андрей Федорович'}])
+2025-09-12 14:31:08 | INFO     | logger.py:113 | 🔍 Отправляю запрос к ИИ (сообщений: 1)
+2025-09-12 14:31:10 | INFO     | logger.py:113 | 🔍 ИИ вызывает функцию: sort_employee
+2025-09-12 14:31:10 | INFO     | logger.py:113 | 🔍 Выполняю sort_employee с аргументом: Егоров Андрей Федорович
+2025-09-12 14:31:10 | DEBUG    | logger.py:66 | 🚀 Вход в функцию: sort_employee
+  Аргументы: ('Егоров Андрей Федорович',)
+2025-09-12 14:31:10 | INFO     | logger.py:113 | 🔍 Ищу сотрудников по фильтру: 'Егоров Андрей Федорович'
+2025-09-12 14:31:10 | DEBUG    | logger.py:66 | 🚀 Вход в функцию: call_external_api
+2025-09-12 14:31:10 | INFO     | logger.py:125 | 🌐 Выполняю запрос к API: http://labor.tetrakom-crm-miniapp.ru/api/people
+2025-09-12 14:31:10 | INFO     | logger.py:125 | 🌐 API запрос успешен, получено 650257 символов
+2025-09-12 14:31:10 | DEBUG    | logger.py:80 | ✅ Выход из функции call_external_api
+  Результат: 3
+2025-09-12 14:31:27 | ERROR    | logger.py:97 | ❌ ИИ вернул пустой результат
+2025-09-12 14:31:27 | DEBUG    | logger.py:80 | ❌ Выход из функции sort_employee с ошибкой: ИИ вернул пустой результат
+2025-09-12 14:31:27 | ERROR    | logger.py:97 | ❌ Ошибка в sort_employee: ❌ Ошибка: ИИ не смог найти сотрудников по запросу
+2025-09-12 14:31:27 | DEBUG    | logger.py:80 | ❌ Выход из функции search_dispatcher с ошибкой: ❌ Ошибка: ИИ не смог найти сотрудников по запросу
+2025-09-12 14:31:27 | INFO     | logger.py:105 | ✅ 
+  Результат поиска сотрудников connect_search_dispatcher: ❌ Ошибка: ИИ не смог найти сотрудников по
+  запросу
+2025-09-12 14:31:27 | DEBUG    | logger.py:80 | 
+  ✅ Выход из функции connect_search_dispatcher Результат: {'type': 'searchclar', 'message': '❌ Ошибка:
+  ИИ не смог найти сотрудников по запросу', 'chat_history_search': '[]'}
+2025-09-12 14:31:27 | DEBUG    | logger.py:80 | ✅ Выход из функции handle_message
+  Результат: Сообщение обработано успешно
+2025-09-12 14:31:55 | DEBUG    | logger.py:80 | ✅ Выход из функции main
+  Результат: Бот запущен успешно
+2025-09-12 14:32:03 | DEBUG    | logger.py:66 | 🚀 Вход в функцию: main
+2025-09-12 14:32:04 | INFO     | logger.py:89 | ℹ️ ✅ Webhook удален успешно
+2025-09-12 14:32:08 | DEBUG    | logger.py:66 | 🚀 Вход в функцию: handle_message
+  Аргументы: ('Егоров Андрей Федорович',)
+2025-09-12 14:32:10 | DEBUG    | logger.py:66 | 
+  🚀 Вход в функцию: ceo_dispatcher Аргументы: [{'role': 'user', 'content': 'Егоров Андрей Федорович'}]
+2025-09-12 14:32:10 | DEBUG    | logger.py:80 | ✅ Выход из функции handle_message
+  Результат: Сообщение обработано успешно
+2025-09-12 14:38:11 | DEBUG    | logger.py:80 | ✅ Выход из функции main
+  Результат: Бот запущен успешно
+2025-09-12 14:38:20 | DEBUG    | logger.py:66 | 🚀 Вход в функцию: main
+2025-09-12 14:38:21 | INFO     | logger.py:89 | ℹ️ ✅ Webhook удален успешно
+2025-09-12 14:38:23 | DEBUG    | logger.py:66 | 🚀 Вход в функцию: handle_message
+  Аргументы: ('Егоров Андрей Федорович',)
+2025-09-12 14:38:24 | DEBUG    | logger.py:66 | 
+  🚀 Вход в функцию: ceo_dispatcher Аргументы: [{'role': 'user', 'content': 'Егоров Андрей Федорович'}]
+2025-09-12 14:38:26 | INFO     | logger.py:89 | ℹ️ ceo_dispatcher, decision: search
+2025-09-12 14:38:26 | INFO     | logger.py:89 | ℹ️ ceo_dispatcher, decision после проверки type_of_request: search, 
+2025-09-12 14:38:26 | DEBUG    | logger.py:66 | 
+  🚀 Вход в функцию: connect_search_dispatcher Аргументы: ([{'role': 'user', 'content': 'Егоров Андрей
+  Федорович'}], [{'role': 'user', 'content': 'Егоров Андрей Федорович'}])
+2025-09-12 14:38:26 | DEBUG    | logger.py:66 | 
+  🚀 Вход в функцию: search_dispatcher Аргументы: ([{'role': 'user', 'content': 'Егоров Андрей
+  Федорович'}], [{'role': 'user', 'content': 'Егоров Андрей Федорович'}])
+2025-09-12 14:38:26 | INFO     | logger.py:113 | 🔍 Отправляю запрос к ИИ (сообщений: 1)
+2025-09-12 14:38:27 | INFO     | logger.py:113 | 🔍 ИИ вызывает функцию: sort_employee
+2025-09-12 14:38:27 | INFO     | logger.py:113 | 🔍 Выполняю sort_employee с аргументом: Егоров Андрей Федорович
+2025-09-12 14:38:27 | DEBUG    | logger.py:66 | 🚀 Вход в функцию: sort_employee
+  Аргументы: ('Егоров Андрей Федорович',)
+2025-09-12 14:38:27 | INFO     | logger.py:113 | 🔍 Ищу сотрудников по фильтру: 'Егоров Андрей Федорович'
+2025-09-12 14:38:27 | DEBUG    | logger.py:66 | 🚀 Вход в функцию: call_external_api
+2025-09-12 14:38:27 | INFO     | logger.py:125 | 🌐 Выполняю запрос к API: http://labor.tetrakom-crm-miniapp.ru/api/people
+2025-09-12 14:38:29 | INFO     | logger.py:125 | 🌐 API запрос успешен, получено 650257 символов
+2025-09-12 14:38:29 | DEBUG    | logger.py:80 | ✅ Выход из функции call_external_api
+  Результат: 3
+2025-09-12 14:38:30 | ERROR    | logger.py:97 | ❌ 
+  ❌ Ошибка выполнения функции sort_employee: Error code: 400 - {'error': {'traceId':
+  'ac304a6b-60bd-4db2-9f25-56d6e79e3f84', 'message': 'HTTP request error: 400: This endpoint\'s
+  maximum context length is 1047576 tokens. However, you requested about 1195318 tokens. Please reduce
+  the length of either one, or use the "middle-out" transform to compress your prompt automatically.',
+  'code': 'LLM_REQUEST_ERROR'}}
+2025-09-12 14:38:30 | DEBUG    | logger.py:80 | 
+  ❌ Выход из функции search_dispatcher с ошибкой: ❌ Ошибка выполнения функции sort_employee: Error
+  code: 400 - {'error': {'traceId': 'ac304a6b-60bd-4db2-9f25-56d6e79e3f84', 'message': 'HTTP request
+  error: 400: This endpoint\'s maximum context length is 1047576 tokens. However, you requested about
+  1195318 tokens. Please reduce the length of either one, or use the "middle-out" transform to
+  compress your prompt automatically.', 'code': 'LLM_REQUEST_ERROR'}}
+2025-09-12 14:38:30 | INFO     | logger.py:105 | ✅ 
+  Результат поиска сотрудников connect_search_dispatcher: ❌ Ошибка выполнения функции sort_employee:
+  Error code: 400 - {'error': {'traceId': 'ac304a6b-60bd-4db2-9f25-56d6e79e3f84', 'message': 'HTTP
+  request error: 400: This endpoint\'s maximum context length is 1047576 tokens. However, you
+  requested about 1195318 tokens. Please reduce the length of either one, or use the "middle-out"
+  transform to compress your prompt automatically.', 'code': 'LLM_REQUEST_ERROR'}}
+2025-09-12 14:38:30 | DEBUG    | logger.py:80 | 
+  ✅ Выход из функции connect_search_dispatcher Результат: {'type': 'searchclar', 'message': '❌ Ошибка
+  выполнения функции sort_employee: Error code: 400 - {\'error\': {\'traceId\':
+  \'ac304a6b-60bd-4db2-9f25-56d6e79e3f84\', \'message\': \'HTTP request error: 400: This endpoint\\\'s
+  maximum context length is 1047576 tokens. However, you requested about 1195318 tokens. Please reduce
+  the length of either one, or use the "middle-out" transform to compress your prompt
+  automatically.\', \'code\': \'LLM_REQUEST_ERROR\'}}', 'chat_history_search': '[]'}
+2025-09-12 14:38:30 | DEBUG    | logger.py:80 | ✅ Выход из функции handle_message
+  Результат: Сообщение обработано успешно
+2025-09-12 14:39:15 | DEBUG    | logger.py:66 | 🚀 Вход в функцию: main
+2025-09-12 14:39:16 | INFO     | logger.py:89 | ℹ️ ✅ Webhook удален успешно
+2025-09-12 14:39:18 | DEBUG    | logger.py:66 | 🚀 Вход в функцию: handle_message
+  Аргументы: ('Егоров Андрей Федорович',)
+2025-09-12 14:39:19 | DEBUG    | logger.py:66 | 
+  🚀 Вход в функцию: ceo_dispatcher Аргументы: [{'role': 'user', 'content': 'Егоров Андрей Федорович'}]
+2025-09-12 14:39:21 | INFO     | logger.py:89 | ℹ️ ceo_dispatcher, decision: search
+2025-09-12 14:39:21 | INFO     | logger.py:89 | ℹ️ ceo_dispatcher, decision после проверки type_of_request: search, 
+2025-09-12 14:39:21 | DEBUG    | logger.py:66 | 
+  🚀 Вход в функцию: connect_search_dispatcher Аргументы: ([{'role': 'user', 'content': 'Егоров Андрей
+  Федорович'}], [{'role': 'user', 'content': 'Егоров Андрей Федорович'}])
+2025-09-12 14:39:21 | DEBUG    | logger.py:66 | 
+  🚀 Вход в функцию: search_dispatcher Аргументы: ([{'role': 'user', 'content': 'Егоров Андрей
+  Федорович'}], [{'role': 'user', 'content': 'Егоров Андрей Федорович'}])
+2025-09-12 14:39:21 | INFO     | logger.py:113 | 🔍 Отправляю запрос к ИИ (сообщений: 1)
+2025-09-12 14:39:22 | INFO     | logger.py:113 | 🔍 ИИ вызывает функцию: sort_employee
+2025-09-12 14:39:22 | INFO     | logger.py:113 | 🔍 Выполняю sort_employee с аргументом: Егоров Андрей Федорович
+2025-09-12 14:39:22 | DEBUG    | logger.py:66 | 🚀 Вход в функцию: sort_employee
+  Аргументы: ('Егоров Андрей Федорович',)
+2025-09-12 14:39:22 | INFO     | logger.py:113 | 🔍 Ищу сотрудников по фильтру: 'Егоров Андрей Федорович'
+2025-09-12 14:39:22 | DEBUG    | logger.py:66 | 🚀 Вход в функцию: call_external_api
+2025-09-12 14:39:22 | INFO     | logger.py:125 | 🌐 Выполняю запрос к API: http://labor.tetrakom-crm-miniapp.ru/api/people
+2025-09-12 14:39:23 | INFO     | logger.py:125 | 🌐 API запрос успешен, получено 465230 символов
+2025-09-12 14:39:23 | DEBUG    | logger.py:80 | ✅ Выход из функции call_external_api
+  Результат: 3
+2025-09-12 14:39:24 | ERROR    | logger.py:97 | ❌ 
+  ❌ Ошибка выполнения функции sort_employee: Error code: 400 - {'error': {'traceId':
+  'e27385a9-f28d-45bc-9985-a579787e5ac2', 'message': 'HTTP request error: 400: This endpoint\'s
+  maximum context length is 1047576 tokens. However, you requested about 1139997 tokens. Please reduce
+  the length of either one, or use the "middle-out" transform to compress your prompt automatically.',
+  'code': 'LLM_REQUEST_ERROR'}}
+2025-09-12 14:39:24 | DEBUG    | logger.py:80 | 
+  ❌ Выход из функции search_dispatcher с ошибкой: ❌ Ошибка выполнения функции sort_employee: Error
+  code: 400 - {'error': {'traceId': 'e27385a9-f28d-45bc-9985-a579787e5ac2', 'message': 'HTTP request
+  error: 400: This endpoint\'s maximum context length is 1047576 tokens. However, you requested about
+  1139997 tokens. Please reduce the length of either one, or use the "middle-out" transform to
+  compress your prompt automatically.', 'code': 'LLM_REQUEST_ERROR'}}
+2025-09-12 14:39:24 | INFO     | logger.py:105 | ✅ 
+  Результат поиска сотрудников connect_search_dispatcher: ❌ Ошибка выполнения функции sort_employee:
+  Error code: 400 - {'error': {'traceId': 'e27385a9-f28d-45bc-9985-a579787e5ac2', 'message': 'HTTP
+  request error: 400: This endpoint\'s maximum context length is 1047576 tokens. However, you
+  requested about 1139997 tokens. Please reduce the length of either one, or use the "middle-out"
+  transform to compress your prompt automatically.', 'code': 'LLM_REQUEST_ERROR'}}
+2025-09-12 14:39:24 | DEBUG    | logger.py:80 | 
+  ✅ Выход из функции connect_search_dispatcher Результат: {'type': 'searchclar', 'message': '❌ Ошибка
+  выполнения функции sort_employee: Error code: 400 - {\'error\': {\'traceId\':
+  \'e27385a9-f28d-45bc-9985-a579787e5ac2\', \'message\': \'HTTP request error: 400: This endpoint\\\'s
+  maximum context length is 1047576 tokens. However, you requested about 1139997 tokens. Please reduce
+  the length of either one, or use the "middle-out" transform to compress your prompt
+  automatically.\', \'code\': \'LLM_REQUEST_ERROR\'}}', 'chat_history_search': '[]'}
+2025-09-12 14:39:24 | DEBUG    | logger.py:80 | ✅ Выход из функции handle_message
+  Результат: Сообщение обработано успешно
+2025-09-12 14:53:22 | DEBUG    | logger.py:80 | ✅ Выход из функции main
+  Результат: Бот запущен успешно
+2025-09-12 15:11:40 | DEBUG    | logger.py:66 | 🚀 Вход в функцию: main
+2025-09-12 15:11:41 | INFO     | logger.py:89 | ℹ️ ✅ Webhook удален успешно
+2025-09-12 15:11:44 | DEBUG    | logger.py:66 | 🚀 Вход в функцию: handle_message
+  Аргументы: ('Егоров Андрей Федорович',)
+2025-09-12 15:11:45 | DEBUG    | logger.py:66 | 
+  🚀 Вход в функцию: ceo_dispatcher Аргументы: [{'role': 'user', 'content': 'Егоров Андрей Федорович'}]
+2025-09-12 15:11:46 | INFO     | logger.py:89 | ℹ️ ceo_dispatcher, decision: search
+2025-09-12 15:11:46 | INFO     | logger.py:89 | ℹ️ ceo_dispatcher, decision после проверки type_of_request: search, 
+2025-09-12 15:11:46 | DEBUG    | logger.py:66 | 
+  🚀 Вход в функцию: connect_search_dispatcher Аргументы: ([{'role': 'user', 'content': 'Егоров Андрей
+  Федорович'}], [{'role': 'user', 'content': 'Егоров Андрей Федорович'}])
+2025-09-12 15:11:46 | DEBUG    | logger.py:66 | 
+  🚀 Вход в функцию: search_dispatcher Аргументы: ([{'role': 'user', 'content': 'Егоров Андрей
+  Федорович'}], [{'role': 'user', 'content': 'Егоров Андрей Федорович'}])
+2025-09-12 15:11:46 | INFO     | logger.py:113 | 🔍 Отправляю запрос к ИИ (сообщений: 1)
+2025-09-12 15:11:48 | INFO     | logger.py:113 | 🔍 ИИ вызывает функцию: sort_employee
+2025-09-12 15:11:48 | INFO     | logger.py:113 | 🔍 Выполняю sort_employee с аргументом: Егоров Андрей Федорович
+2025-09-12 15:11:48 | DEBUG    | logger.py:66 | 🚀 Вход в функцию: sort_employee
+  Аргументы: ('Егоров Андрей Федорович',)
+2025-09-12 15:11:48 | INFO     | logger.py:113 | 🔍 Ищу сотрудников по фильтру: 'Егоров Андрей Федорович'
+2025-09-12 15:11:48 | DEBUG    | logger.py:66 | 🚀 Вход в функцию: call_external_api
+2025-09-12 15:11:48 | INFO     | logger.py:125 | 🌐 Выполняю запрос к API: http://labor.tetrakom-crm-miniapp.ru/api/people/compact
+2025-09-12 15:11:48 | INFO     | logger.py:125 | 🌐 API запрос успешен, получено 335106 символов
+2025-09-12 15:11:48 | DEBUG    | logger.py:80 | ✅ Выход из функции call_external_api
+  Результат: 189
+2025-09-12 15:11:49 | ERROR    | logger.py:97 | ❌ 
+  ❌ Ошибка выполнения функции sort_employee: Error code: 400 - {'error': {'traceId':
+  '24b13b0d-5a69-4b98-ac81-9ea38405601a', 'message': 'HTTP request error: 400: This endpoint\'s
+  maximum context length is 1047576 tokens. However, you requested about 1122182 tokens. Please reduce
+  the length of either one, or use the "middle-out" transform to compress your prompt automatically.',
+  'code': 'LLM_REQUEST_ERROR'}}
+2025-09-12 15:11:49 | DEBUG    | logger.py:80 | 
+  ❌ Выход из функции search_dispatcher с ошибкой: ❌ Ошибка выполнения функции sort_employee: Error
+  code: 400 - {'error': {'traceId': '24b13b0d-5a69-4b98-ac81-9ea38405601a', 'message': 'HTTP request
+  error: 400: This endpoint\'s maximum context length is 1047576 tokens. However, you requested about
+  1122182 tokens. Please reduce the length of either one, or use the "middle-out" transform to
+  compress your prompt automatically.', 'code': 'LLM_REQUEST_ERROR'}}
+2025-09-12 15:11:49 | INFO     | logger.py:105 | ✅ 
+  Результат поиска сотрудников connect_search_dispatcher: ❌ Ошибка выполнения функции sort_employee:
+  Error code: 400 - {'error': {'traceId': '24b13b0d-5a69-4b98-ac81-9ea38405601a', 'message': 'HTTP
+  request error: 400: This endpoint\'s maximum context length is 1047576 tokens. However, you
+  requested about 1122182 tokens. Please reduce the length of either one, or use the "middle-out"
+  transform to compress your prompt automatically.', 'code': 'LLM_REQUEST_ERROR'}}
+2025-09-12 15:11:49 | DEBUG    | logger.py:80 | 
+  ✅ Выход из функции connect_search_dispatcher Результат: {'type': 'searchclar', 'message': '❌ Ошибка
+  выполнения функции sort_employee: Error code: 400 - {\'error\': {\'traceId\':
+  \'24b13b0d-5a69-4b98-ac81-9ea38405601a\', \'message\': \'HTTP request error: 400: This endpoint\\\'s
+  maximum context length is 1047576 tokens. However, you requested about 1122182 tokens. Please reduce
+  the length of either one, or use the "middle-out" transform to compress your prompt
+  automatically.\', \'code\': \'LLM_REQUEST_ERROR\'}}', 'chat_history_search': '[]'}
+2025-09-12 15:11:49 | DEBUG    | logger.py:80 | ✅ Выход из функции handle_message
+  Результат: Сообщение обработано успешно
+2025-09-12 15:15:43 | DEBUG    | logger.py:80 | ✅ Выход из функции main
+  Результат: Бот запущен успешно
