@@ -258,7 +258,7 @@ async def call_external_api():
     try:
         api(f"Выполняю запрос к API: {BASE_URL}/api/people")
         resp = requests.get(
-            f"{BASE_URL}/api/people", 
+            f"{BASE_URL}/api/people?per_page=1000", 
             timeout=30,  # Увеличиваем таймаут
             proxies={"http": None, "https": None},
             headers={'User-Agent': 'PolzaAI-Bot/1.0'}
