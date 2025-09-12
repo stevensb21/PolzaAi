@@ -424,8 +424,6 @@ async def sort_employee(employee):
             {"role": "user", "content": employee},
             {"role": "assistant", "content": json_content}
         ],
-
-    
         temperature=0.1
     )
         
