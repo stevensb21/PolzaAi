@@ -5,8 +5,29 @@ from ceo import ceo_dispatcher
 from dotenv import load_dotenv
 import os
 import time
+import fcntl
+import sys
 from logger import bot as bot_log, debug, info, error, critical, log_function_entry, log_function_exit
 from generateDocx import create_tetracom_document
+
+# Проверка на уже запущенный экземпляр
+def check_single_instance():
+    """Проверяет, что запущен только один экземпляр бота"""
+    lock_file = '/tmp/polzaai_bot.lock'
+    try:
+        # Пытаемся создать файл блокировки
+        lock_fd = os.open(lock_file, os.O_CREAT | os.O_WRONLY | os.O_TRUNC)
+        fcntl.flock(lock_fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        
+        # Если успешно, записываем PID
+        os.write(lock_fd, str(os.getpid()).encode())
+        os.close(lock_fd)
+        
+        info("✅ Экземпляр бота запущен успешно")
+        return True
+    except (OSError, IOError):
+        error("❌ Бот уже запущен! Остановите другой экземпляр перед запуском.")
+        sys.exit(1)
 
 load_dotenv()
 
@@ -512,6 +533,9 @@ def reset_chat(message):
 def main():
     """Главная функция с надежной обработкой ошибок подключения"""
     log_function_entry("main")
+    
+    # Проверяем, что запущен только один экземпляр
+    check_single_instance()
     
     max_retries = 5
     retry_delay = 5  # секунд

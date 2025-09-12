@@ -258,7 +258,7 @@ async def call_external_api():
     try:
         api(f"Выполняю запрос к API: {BASE_URL}/api/people/compact")
         resp = requests.get(
-            f"{BASE_URL}/api/people/compact", 
+            f"{BASE_URL}/api/people/compact?limit=30", 
             timeout=30,  # Увеличиваем таймаут
             proxies={"http": None, "https": None},
             headers={'User-Agent': 'PolzaAI-Bot/1.0'}
@@ -425,7 +425,7 @@ async def sort_employee(employee):
             {"role": "assistant", "content": json_content}
         ],
 
-        max_tokens=1000000,
+    
         temperature=0.1
     )
         
