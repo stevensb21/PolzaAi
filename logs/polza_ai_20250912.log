@@ -50,3 +50,470 @@
 2025-09-12 09:37:59 | INFO     | logger.py:89 | ℹ️ ⏳ Ожидание 5 секунд перед следующей попыткой...
 2025-09-12 09:37:59 | INFO     | logger.py:89 | ℹ️ 🔄 Попытка переподключения 2/5
 2025-09-12 09:38:04 | INFO     | logger.py:89 | ℹ️ ✅ Webhook удален успешно
+2025-09-12 11:03:03 | DEBUG    | logger.py:66 | 🚀 Вход в функцию: main
+2025-09-12 11:03:03 | INFO     | logger.py:89 | ℹ️ ✅ Webhook удален успешно
+2025-09-12 11:04:14 | DEBUG    | logger.py:66 | 🚀 Вход в функцию: handle_message
+  Аргументы: ('Якубов',)
+2025-09-12 11:04:15 | DEBUG    | logger.py:66 | 🚀 Вход в функцию: ceo_dispatcher
+  Аргументы: [{'role': 'user', 'content': 'Якубов'}]
+2025-09-12 11:04:16 | INFO     | logger.py:89 | ℹ️ ceo_dispatcher, decision: search
+2025-09-12 11:04:16 | INFO     | logger.py:89 | ℹ️ ceo_dispatcher, decision после проверки type_of_request: search, 
+2025-09-12 11:04:16 | DEBUG    | logger.py:66 | 
+  🚀 Вход в функцию: connect_search_dispatcher Аргументы: ([{'role': 'user', 'content': 'Якубов'}],
+  [{'role': 'user', 'content': 'Якубов'}])
+2025-09-12 11:04:16 | DEBUG    | logger.py:66 | 
+  🚀 Вход в функцию: search_dispatcher Аргументы: ([{'role': 'user', 'content': 'Якубов'}], [{'role':
+  'user', 'content': 'Якубов'}])
+2025-09-12 11:04:16 | INFO     | logger.py:113 | 🔍 Отправляю запрос к ИИ (сообщений: 1)
+2025-09-12 11:04:18 | INFO     | logger.py:113 | 🔍 ИИ вызывает функцию: sort_employee
+2025-09-12 11:04:18 | INFO     | logger.py:113 | 🔍 Выполняю sort_employee с аргументом: Якубов
+2025-09-12 11:04:18 | DEBUG    | logger.py:66 | 🚀 Вход в функцию: sort_employee
+  Аргументы: ('Якубов',)
+2025-09-12 11:04:18 | INFO     | logger.py:113 | 🔍 Ищу сотрудников по фильтру: 'Якубов'
+2025-09-12 11:04:18 | DEBUG    | logger.py:66 | 🚀 Вход в функцию: call_external_api
+2025-09-12 11:04:18 | INFO     | logger.py:125 | 🌐 Выполняю запрос к API: http://labor.tetrakom-crm-miniapp.ru/api/people
+2025-09-12 11:04:18 | INFO     | logger.py:125 | 🌐 API запрос успешен, получено 109609 символов
+2025-09-12 11:04:18 | DEBUG    | logger.py:80 | ✅ Выход из функции call_external_api
+  Результат: 3
+2025-09-12 11:04:21 | INFO     | logger.py:105 | ✅ Результат поиска сотрудников: {"data": "нет сотрудников"}
+2025-09-12 11:04:21 | INFO     | logger.py:105 | ✅ Поиск сотрудников завершен
+2025-09-12 11:04:21 | DEBUG    | logger.py:80 | ✅ Выход из функции sort_employee
+  Результат: {"data": "нет сотрудников"}
+2025-09-12 11:04:21 | ERROR    | logger.py:97 | ❌ ❌ Неверный формат данных сотрудника в format_employee_info: ожидался dict, получен <class 'str'>
+2025-09-12 11:04:21 | INFO     | logger.py:105 | ✅ Функция sort_employee выполнена успешно
+2025-09-12 11:04:21 | DEBUG    | logger.py:80 | 
+  ✅ Выход из функции search_dispatcher Результат: ❌ Неверный формат данных сотрудника в
+  format_employee_info: ожидался dict, получен <class 'str'>
+2025-09-12 11:04:21 | INFO     | logger.py:105 | ✅ 
+  Результат поиска сотрудников connect_search_dispatcher: ❌ Неверный формат данных сотрудника в
+  format_employee_info: ожидался dict, получен <class 'str'>
+2025-09-12 11:04:21 | DEBUG    | logger.py:80 | 
+  ✅ Выход из функции connect_search_dispatcher Результат: {'type': 'searchclar', 'message': "❌
+  Неверный формат данных сотрудника в format_employee_info: ожидался dict, получен <class 'str'>",
+  'chat_history_search': '[\n {\n "role": "assistant",\n "content": "{\\"data\\": \\"нет
+  сотрудников\\"}"\n }\n]'}
+2025-09-12 11:04:21 | DEBUG    | logger.py:80 | ✅ Выход из функции handle_message
+  Результат: Сообщение обработано успешно
+2025-09-12 11:04:49 | DEBUG    | logger.py:66 | 🚀 Вход в функцию: handle_message
+  Аргументы: ('отмена',)
+2025-09-12 11:04:49 | DEBUG    | logger.py:66 | 🚀 Вход в функцию: ceo_dispatcher
+  Аргументы: [{'role': 'user', 'content': 'отмена'}]
+2025-09-12 11:04:52 | INFO     | logger.py:89 | ℹ️ ceo_dispatcher, decision: cancel
+2025-09-12 11:04:52 | DEBUG    | logger.py:80 | ✅ Выход из функции handle_message
+  Результат: Сообщение обработано успешно
+2025-09-12 11:04:55 | DEBUG    | logger.py:66 | 🚀 Вход в функцию: handle_message
+  Аргументы: ('Якубов',)
+2025-09-12 11:04:55 | DEBUG    | logger.py:66 | 🚀 Вход в функцию: ceo_dispatcher
+  Аргументы: [{'role': 'user', 'content': 'Якубов'}]
+2025-09-12 11:04:57 | INFO     | logger.py:89 | ℹ️ ceo_dispatcher, decision: search
+2025-09-12 11:04:57 | INFO     | logger.py:89 | ℹ️ ceo_dispatcher, decision после проверки type_of_request: search, 
+2025-09-12 11:04:57 | DEBUG    | logger.py:66 | 
+  🚀 Вход в функцию: connect_search_dispatcher Аргументы: ([{'role': 'user', 'content': 'Якубов'}],
+  [{'role': 'user', 'content': 'Якубов'}])
+2025-09-12 11:04:57 | DEBUG    | logger.py:66 | 
+  🚀 Вход в функцию: search_dispatcher Аргументы: ([{'role': 'user', 'content': 'Якубов'}], [{'role':
+  'user', 'content': 'Якубов'}])
+2025-09-12 11:04:57 | INFO     | logger.py:113 | 🔍 Отправляю запрос к ИИ (сообщений: 1)
+2025-09-12 11:04:59 | INFO     | logger.py:113 | 🔍 ИИ вызывает функцию: sort_employee
+2025-09-12 11:04:59 | INFO     | logger.py:113 | 🔍 Выполняю sort_employee с аргументом: Якубов
+2025-09-12 11:04:59 | DEBUG    | logger.py:66 | 🚀 Вход в функцию: sort_employee
+  Аргументы: ('Якубов',)
+2025-09-12 11:04:59 | INFO     | logger.py:113 | 🔍 Ищу сотрудников по фильтру: 'Якубов'
+2025-09-12 11:04:59 | DEBUG    | logger.py:66 | 🚀 Вход в функцию: call_external_api
+2025-09-12 11:04:59 | INFO     | logger.py:125 | 🌐 Выполняю запрос к API: http://labor.tetrakom-crm-miniapp.ru/api/people
+2025-09-12 11:04:59 | INFO     | logger.py:125 | 🌐 API запрос успешен, получено 109609 символов
+2025-09-12 11:04:59 | DEBUG    | logger.py:80 | ✅ Выход из функции call_external_api
+  Результат: 3
+2025-09-12 11:05:03 | INFO     | logger.py:105 | ✅ Результат поиска сотрудников: {"data": "нет сотрудников"}
+2025-09-12 11:05:03 | INFO     | logger.py:105 | ✅ Поиск сотрудников завершен
+2025-09-12 11:05:03 | DEBUG    | logger.py:80 | ✅ Выход из функции sort_employee
+  Результат: {"data": "нет сотрудников"}
+2025-09-12 11:05:03 | ERROR    | logger.py:97 | ❌ ❌ Неверный формат данных сотрудника в format_employee_info: ожидался dict, получен <class 'str'>
+2025-09-12 11:05:03 | INFO     | logger.py:105 | ✅ Функция sort_employee выполнена успешно
+2025-09-12 11:05:03 | DEBUG    | logger.py:80 | 
+  ✅ Выход из функции search_dispatcher Результат: ❌ Неверный формат данных сотрудника в
+  format_employee_info: ожидался dict, получен <class 'str'>
+2025-09-12 11:05:03 | INFO     | logger.py:105 | ✅ 
+  Результат поиска сотрудников connect_search_dispatcher: ❌ Неверный формат данных сотрудника в
+  format_employee_info: ожидался dict, получен <class 'str'>
+2025-09-12 11:05:03 | DEBUG    | logger.py:80 | 
+  ✅ Выход из функции connect_search_dispatcher Результат: {'type': 'searchclar', 'message': "❌
+  Неверный формат данных сотрудника в format_employee_info: ожидался dict, получен <class 'str'>",
+  'chat_history_search': '[\n {\n "role": "assistant",\n "content": "{\\"data\\": \\"нет
+  сотрудников\\"}"\n }\n]'}
+2025-09-12 11:05:03 | DEBUG    | logger.py:80 | ✅ Выход из функции handle_message
+  Результат: Сообщение обработано успешно
+2025-09-12 11:05:07 | DEBUG    | logger.py:66 | 🚀 Вход в функцию: handle_message
+  Аргументы: ('Якубов Боирджон Ахмадович',)
+2025-09-12 11:05:08 | DEBUG    | logger.py:66 | 
+  🚀 Вход в функцию: ceo_dispatcher Аргументы: [{'role': 'user', 'content': 'Якубов Боирджон
+  Ахмадович'}]
+2025-09-12 11:05:10 | INFO     | logger.py:89 | ℹ️ ceo_dispatcher, decision: search
+2025-09-12 11:05:10 | INFO     | logger.py:89 | ℹ️ ceo_dispatcher, decision после проверки type_of_request: search, searchclar
+2025-09-12 11:05:10 | DEBUG    | logger.py:66 | 
+  🚀 Вход в функцию: connect_search_dispatcher Аргументы: ([{'role': 'user', 'content': 'Якубов
+  Боирджон Ахмадович'}], [{'role': 'assistant', 'content': '[\n {\n "role": "assistant",\n "content":
+  "{\\"data\\": \\"нет сотрудников\\"}"\n }\n]'}, {'role': 'user', 'content': 'Якубов Боирджон
+  Ахмадович'}])
+2025-09-12 11:05:10 | DEBUG    | logger.py:66 | 
+  🚀 Вход в функцию: search_dispatcher Аргументы: ([{'role': 'user', 'content': 'Якубов Боирджон
+  Ахмадович'}], [{'role': 'assistant', 'content': '[\n {\n "role": "assistant",\n "content":
+  "{\\"data\\": \\"нет сотрудников\\"}"\n }\n]'}, {'role': 'user', 'content': 'Якубов Боирджон
+  Ахмадович'}])
+2025-09-12 11:05:10 | INFO     | logger.py:113 | 🔍 Отправляю запрос к ИИ (сообщений: 1)
+2025-09-12 11:05:12 | INFO     | logger.py:113 | 🔍 ИИ вызывает функцию: sort_employee
+2025-09-12 11:05:12 | INFO     | logger.py:113 | 🔍 Выполняю sort_employee с аргументом: Якубов Боирджон Ахмадович
+2025-09-12 11:05:12 | DEBUG    | logger.py:66 | 🚀 Вход в функцию: sort_employee
+  Аргументы: ('Якубов Боирджон Ахмадович',)
+2025-09-12 11:05:12 | INFO     | logger.py:113 | 🔍 Ищу сотрудников по фильтру: 'Якубов Боирджон Ахмадович'
+2025-09-12 11:05:12 | DEBUG    | logger.py:66 | 🚀 Вход в функцию: call_external_api
+2025-09-12 11:05:12 | INFO     | logger.py:125 | 🌐 Выполняю запрос к API: http://labor.tetrakom-crm-miniapp.ru/api/people
+2025-09-12 11:05:13 | INFO     | logger.py:125 | 🌐 API запрос успешен, получено 109609 символов
+2025-09-12 11:05:13 | DEBUG    | logger.py:80 | ✅ Выход из функции call_external_api
+  Результат: 3
+2025-09-12 11:05:23 | INFO     | logger.py:105 | ✅ Результат поиска сотрудников: {
+  "data": [],
+  "message": "нет сотрудников"
+}
+2025-09-12 11:05:23 | INFO     | logger.py:105 | ✅ Поиск сотрудников завершен
+2025-09-12 11:05:23 | DEBUG    | logger.py:80 | ✅ Выход из функции sort_employee
+  Результат: {
+  "data": [],
+  "message": "нет сотрудников"
+}
+2025-09-12 11:05:23 | DEBUG    | logger.py:80 | ✅ Выход из функции format_employee_info
+  Результат: ⚠ Нет сотрудников по запросу
+2025-09-12 11:05:23 | INFO     | logger.py:105 | ✅ Функция sort_employee выполнена успешно
+2025-09-12 11:05:23 | DEBUG    | logger.py:80 | ✅ Выход из функции search_dispatcher
+  Результат: ⚠ Нет сотрудников по запросу
+2025-09-12 11:05:23 | INFO     | logger.py:105 | ✅ Результат поиска сотрудников connect_search_dispatcher: ⚠ Нет сотрудников по запросу
+2025-09-12 11:05:23 | DEBUG    | logger.py:80 | 
+  ✅ Выход из функции connect_search_dispatcher Результат: {'type': 'searchready', 'message': '⚠ Нет
+  сотрудников по запросу', 'chat_history_search': '[\n {\n "role": "assistant",\n "content": "{\\n
+  \\"data\\": [],\\n \\"message\\": \\"нет сотрудников\\"\\n}"\n }\n]'}
+2025-09-12 11:05:23 | DEBUG    | logger.py:80 | ✅ Выход из функции handle_message
+  Результат: Сообщение обработано успешно
+2025-09-12 11:05:26 | DEBUG    | logger.py:66 | 🚀 Вход в функцию: handle_message
+  Аргументы: ('покажи информация о Якубов Боирджон Ахмадович',)
+2025-09-12 11:05:26 | DEBUG    | logger.py:66 | 
+  🚀 Вход в функцию: ceo_dispatcher Аргументы: [{'role': 'user', 'content': 'покажи информация о Якубов
+  Боирджон Ахмадович'}]
+2025-09-12 11:05:28 | INFO     | logger.py:89 | ℹ️ ceo_dispatcher, decision: search
+2025-09-12 11:05:28 | INFO     | logger.py:89 | ℹ️ ceo_dispatcher, decision после проверки type_of_request: search, searchready
+2025-09-12 11:05:28 | DEBUG    | logger.py:66 | 
+  🚀 Вход в функцию: connect_search_dispatcher Аргументы: ([{'role': 'user', 'content': 'покажи
+  информация о Якубов Боирджон Ахмадович'}], [{'role': 'assistant', 'content': '[\n {\n "role":
+  "assistant",\n "content": "{\\"data\\": \\"нет сотрудников\\"}"\n }\n]'}, {'role': 'assistant',
+  'content': '[\n {\n "role": "assistant",\n "content": "{\\n \\"data\\": [],\\n \\"message\\": \\"нет
+  сотрудников\\"\\n}"\n }\n]'}, {'role': 'user', 'content': 'покажи информация о Якубов Боирджон
+  Ахмадович'}])
+2025-09-12 11:05:28 | DEBUG    | logger.py:66 | 
+  🚀 Вход в функцию: search_dispatcher Аргументы: ([{'role': 'user', 'content': 'покажи информация о
+  Якубов Боирджон Ахмадович'}], [{'role': 'assistant', 'content': '[\n {\n "role": "assistant",\n
+  "content": "{\\"data\\": \\"нет сотрудников\\"}"\n }\n]'}, {'role': 'assistant', 'content': '[\n {\n
+  "role": "assistant",\n "content": "{\\n \\"data\\": [],\\n \\"message\\": \\"нет
+  сотрудников\\"\\n}"\n }\n]'}, {'role': 'user', 'content': 'покажи информация о Якубов Боирджон
+  Ахмадович'}])
+2025-09-12 11:05:28 | INFO     | logger.py:113 | 🔍 Отправляю запрос к ИИ (сообщений: 1)
+2025-09-12 11:05:30 | INFO     | logger.py:113 | 🔍 ИИ вызывает функцию: sort_employee
+2025-09-12 11:05:30 | INFO     | logger.py:113 | 🔍 Выполняю sort_employee с аргументом: Якубов Боирджон Ахмадович
+2025-09-12 11:05:30 | DEBUG    | logger.py:66 | 🚀 Вход в функцию: sort_employee
+  Аргументы: ('Якубов Боирджон Ахмадович',)
+2025-09-12 11:05:30 | INFO     | logger.py:113 | 🔍 Ищу сотрудников по фильтру: 'Якубов Боирджон Ахмадович'
+2025-09-12 11:05:30 | DEBUG    | logger.py:66 | 🚀 Вход в функцию: call_external_api
+2025-09-12 11:05:30 | INFO     | logger.py:125 | 🌐 Выполняю запрос к API: http://labor.tetrakom-crm-miniapp.ru/api/people
+2025-09-12 11:05:31 | INFO     | logger.py:125 | 🌐 API запрос успешен, получено 109609 символов
+2025-09-12 11:05:31 | DEBUG    | logger.py:80 | ✅ Выход из функции call_external_api
+  Результат: 3
+2025-09-12 11:05:33 | INFO     | logger.py:105 | ✅ Результат поиска сотрудников: {
+  "data": [],
+  "message": "нет сотрудников"
+}
+2025-09-12 11:05:33 | INFO     | logger.py:105 | ✅ Поиск сотрудников завершен
+2025-09-12 11:05:33 | DEBUG    | logger.py:80 | ✅ Выход из функции sort_employee
+  Результат: {
+  "data": [],
+  "message": "нет сотрудников"
+}
+2025-09-12 11:05:33 | DEBUG    | logger.py:80 | ✅ Выход из функции format_employee_info
+  Результат: ⚠ Нет сотрудников по запросу
+2025-09-12 11:05:33 | INFO     | logger.py:105 | ✅ Функция sort_employee выполнена успешно
+2025-09-12 11:05:33 | DEBUG    | logger.py:80 | ✅ Выход из функции search_dispatcher
+  Результат: ⚠ Нет сотрудников по запросу
+2025-09-12 11:05:33 | INFO     | logger.py:105 | ✅ Результат поиска сотрудников connect_search_dispatcher: ⚠ Нет сотрудников по запросу
+2025-09-12 11:05:33 | DEBUG    | logger.py:80 | 
+  ✅ Выход из функции connect_search_dispatcher Результат: {'type': 'searchready', 'message': '⚠ Нет
+  сотрудников по запросу', 'chat_history_search': '[\n {\n "role": "assistant",\n "content": "{\\n
+  \\"data\\": [],\\n \\"message\\": \\"нет сотрудников\\"\\n}"\n }\n]'}
+2025-09-12 11:05:33 | DEBUG    | logger.py:80 | ✅ Выход из функции handle_message
+  Результат: Сообщение обработано успешно
+2025-09-12 11:05:50 | DEBUG    | logger.py:66 | 🚀 Вход в функцию: handle_message
+  Аргументы: ('покажи информация о Егоров Андрей Федорович',)
+2025-09-12 11:05:50 | DEBUG    | logger.py:66 | 
+  🚀 Вход в функцию: ceo_dispatcher Аргументы: [{'role': 'user', 'content': 'покажи информация о Егоров
+  Андрей Федорович'}]
+2025-09-12 11:05:52 | INFO     | logger.py:89 | ℹ️ ceo_dispatcher, decision: search
+2025-09-12 11:05:52 | INFO     | logger.py:89 | ℹ️ ceo_dispatcher, decision после проверки type_of_request: search, searchready
+2025-09-12 11:05:52 | DEBUG    | logger.py:66 | 
+  🚀 Вход в функцию: connect_search_dispatcher Аргументы: ([{'role': 'user', 'content': 'покажи
+  информация о Егоров Андрей Федорович'}], [{'role': 'assistant', 'content': '[\n {\n "role":
+  "assistant",\n "content": "{\\"data\\": \\"нет сотрудников\\"}"\n }\n]'}, {'role': 'assistant',
+  'content': '[\n {\n "role": "assistant",\n "content": "{\\n \\"data\\": [],\\n \\"message\\": \\"нет
+  сотрудников\\"\\n}"\n }\n]'}, {'role': 'assistant', 'content': '[\n {\n "role": "assistant",\n
+  "content": "{\\n \\"data\\": [],\\n \\"message\\": \\"нет сотрудников\\"\\n}"\n }\n]'}, {'role':
+  'user', 'content': 'покажи информация о Егоров Андрей Федорович'}])
+2025-09-12 11:05:52 | DEBUG    | logger.py:66 | 
+  🚀 Вход в функцию: search_dispatcher Аргументы: ([{'role': 'user', 'content': 'покажи информация о
+  Егоров Андрей Федорович'}], [{'role': 'assistant', 'content': '[\n {\n "role": "assistant",\n
+  "content": "{\\"data\\": \\"нет сотрудников\\"}"\n }\n]'}, {'role': 'assistant', 'content': '[\n {\n
+  "role": "assistant",\n "content": "{\\n \\"data\\": [],\\n \\"message\\": \\"нет
+  сотрудников\\"\\n}"\n }\n]'}, {'role': 'assistant', 'content': '[\n {\n "role": "assistant",\n
+  "content": "{\\n \\"data\\": [],\\n \\"message\\": \\"нет сотрудников\\"\\n}"\n }\n]'}, {'role':
+  'user', 'content': 'покажи информация о Егоров Андрей Федорович'}])
+2025-09-12 11:05:52 | INFO     | logger.py:113 | 🔍 Отправляю запрос к ИИ (сообщений: 1)
+2025-09-12 11:05:54 | INFO     | logger.py:113 | 🔍 ИИ вызывает функцию: sort_employee
+2025-09-12 11:05:54 | INFO     | logger.py:113 | 🔍 Выполняю sort_employee с аргументом: Егоров Андрей Федорович
+2025-09-12 11:05:54 | DEBUG    | logger.py:66 | 🚀 Вход в функцию: sort_employee
+  Аргументы: ('Егоров Андрей Федорович',)
+2025-09-12 11:05:54 | INFO     | logger.py:113 | 🔍 Ищу сотрудников по фильтру: 'Егоров Андрей Федорович'
+2025-09-12 11:05:54 | DEBUG    | logger.py:66 | 🚀 Вход в функцию: call_external_api
+2025-09-12 11:05:54 | INFO     | logger.py:125 | 🌐 Выполняю запрос к API: http://labor.tetrakom-crm-miniapp.ru/api/people
+2025-09-12 11:05:54 | INFO     | logger.py:125 | 🌐 API запрос успешен, получено 109609 символов
+2025-09-12 11:05:54 | DEBUG    | logger.py:80 | ✅ Выход из функции call_external_api
+  Результат: 3
+2025-09-12 11:06:09 | INFO     | logger.py:105 | ✅ Результат поиска сотрудников: {
+  "data": [],
+  "message": "нет сотрудников"
+}
+2025-09-12 11:06:09 | INFO     | logger.py:105 | ✅ Поиск сотрудников завершен
+2025-09-12 11:06:09 | DEBUG    | logger.py:80 | ✅ Выход из функции sort_employee
+  Результат: {
+  "data": [],
+  "message": "нет сотрудников"
+}
+2025-09-12 11:06:09 | DEBUG    | logger.py:80 | ✅ Выход из функции format_employee_info
+  Результат: ⚠ Нет сотрудников по запросу
+2025-09-12 11:06:09 | INFO     | logger.py:105 | ✅ Функция sort_employee выполнена успешно
+2025-09-12 11:06:09 | DEBUG    | logger.py:80 | ✅ Выход из функции search_dispatcher
+  Результат: ⚠ Нет сотрудников по запросу
+2025-09-12 11:06:09 | INFO     | logger.py:105 | ✅ Результат поиска сотрудников connect_search_dispatcher: ⚠ Нет сотрудников по запросу
+2025-09-12 11:06:09 | DEBUG    | logger.py:80 | 
+  ✅ Выход из функции connect_search_dispatcher Результат: {'type': 'searchready', 'message': '⚠ Нет
+  сотрудников по запросу', 'chat_history_search': '[\n {\n "role": "assistant",\n "content": "{\\n
+  \\"data\\": [],\\n \\"message\\": \\"нет сотрудников\\"\\n}"\n }\n]'}
+2025-09-12 11:06:09 | DEBUG    | logger.py:80 | ✅ Выход из функции handle_message
+  Результат: Сообщение обработано успешно
+2025-09-12 12:16:33 | DEBUG    | logger.py:66 | 🚀 Вход в функцию: main
+2025-09-12 12:16:33 | INFO     | logger.py:89 | ℹ️ ✅ Webhook удален успешно
+2025-09-12 12:16:38 | DEBUG    | logger.py:66 | 🚀 Вход в функцию: handle_message
+  Аргументы: ('Егоров Андрей Федорович',)
+2025-09-12 12:16:38 | DEBUG    | logger.py:66 | 
+  🚀 Вход в функцию: ceo_dispatcher Аргументы: [{'role': 'user', 'content': 'Егоров Андрей Федорович'}]
+2025-09-12 12:16:40 | INFO     | logger.py:89 | ℹ️ ceo_dispatcher, decision: search
+2025-09-12 12:16:40 | INFO     | logger.py:89 | ℹ️ ceo_dispatcher, decision после проверки type_of_request: search, 
+2025-09-12 12:16:40 | DEBUG    | logger.py:66 | 
+  🚀 Вход в функцию: connect_search_dispatcher Аргументы: ([{'role': 'user', 'content': 'Егоров Андрей
+  Федорович'}], [{'role': 'user', 'content': 'Егоров Андрей Федорович'}])
+2025-09-12 12:16:40 | DEBUG    | logger.py:66 | 
+  🚀 Вход в функцию: search_dispatcher Аргументы: ([{'role': 'user', 'content': 'Егоров Андрей
+  Федорович'}], [{'role': 'user', 'content': 'Егоров Андрей Федорович'}])
+2025-09-12 12:16:40 | INFO     | logger.py:113 | 🔍 Отправляю запрос к ИИ (сообщений: 1)
+2025-09-12 12:16:42 | INFO     | logger.py:113 | 🔍 ИИ вызывает функцию: sort_employee
+2025-09-12 12:16:42 | INFO     | logger.py:113 | 🔍 Выполняю sort_employee с аргументом: Егоров Андрей Федорович
+2025-09-12 12:16:42 | DEBUG    | logger.py:66 | 🚀 Вход в функцию: sort_employee
+  Аргументы: ('Егоров Андрей Федорович',)
+2025-09-12 12:16:42 | INFO     | logger.py:113 | 🔍 Ищу сотрудников по фильтру: 'Егоров Андрей Федорович'
+2025-09-12 12:16:42 | DEBUG    | logger.py:66 | 🚀 Вход в функцию: call_external_api
+2025-09-12 12:16:42 | INFO     | logger.py:125 | 🌐 Выполняю запрос к API: http://labor.tetrakom-crm-miniapp.ru/api/people
+2025-09-12 12:16:43 | INFO     | logger.py:125 | 🌐 API запрос успешен, получено 1210089 символов
+2025-09-12 12:16:43 | DEBUG    | logger.py:80 | ✅ Выход из функции call_external_api
+  Результат: 3
+2025-09-12 12:16:47 | ERROR    | logger.py:97 | ❌ 
+  ❌ Ошибка выполнения функции sort_employee: Error code: 400 - {'error': {'traceId':
+  '7ae297ab-b983-448e-bbfa-222a491557e3', 'message': 'HTTP request error: 400: This endpoint\'s
+  maximum context length is 1047576 tokens. However, you requested about 1362467 tokens. Please reduce
+  the length of either one, or use the "middle-out" transform to compress your prompt automatically.',
+  'code': 'LLM_REQUEST_ERROR'}}
+2025-09-12 12:16:47 | DEBUG    | logger.py:80 | 
+  ❌ Выход из функции search_dispatcher с ошибкой: ❌ Ошибка выполнения функции sort_employee: Error
+  code: 400 - {'error': {'traceId': '7ae297ab-b983-448e-bbfa-222a491557e3', 'message': 'HTTP request
+  error: 400: This endpoint\'s maximum context length is 1047576 tokens. However, you requested about
+  1362467 tokens. Please reduce the length of either one, or use the "middle-out" transform to
+  compress your prompt automatically.', 'code': 'LLM_REQUEST_ERROR'}}
+2025-09-12 12:16:47 | INFO     | logger.py:105 | ✅ 
+  Результат поиска сотрудников connect_search_dispatcher: ❌ Ошибка выполнения функции sort_employee:
+  Error code: 400 - {'error': {'traceId': '7ae297ab-b983-448e-bbfa-222a491557e3', 'message': 'HTTP
+  request error: 400: This endpoint\'s maximum context length is 1047576 tokens. However, you
+  requested about 1362467 tokens. Please reduce the length of either one, or use the "middle-out"
+  transform to compress your prompt automatically.', 'code': 'LLM_REQUEST_ERROR'}}
+2025-09-12 12:16:47 | DEBUG    | logger.py:80 | 
+  ✅ Выход из функции connect_search_dispatcher Результат: {'type': 'searchclar', 'message': '❌ Ошибка
+  выполнения функции sort_employee: Error code: 400 - {\'error\': {\'traceId\':
+  \'7ae297ab-b983-448e-bbfa-222a491557e3\', \'message\': \'HTTP request error: 400: This endpoint\\\'s
+  maximum context length is 1047576 tokens. However, you requested about 1362467 tokens. Please reduce
+  the length of either one, or use the "middle-out" transform to compress your prompt
+  automatically.\', \'code\': \'LLM_REQUEST_ERROR\'}}', 'chat_history_search': '[]'}
+2025-09-12 12:16:48 | DEBUG    | logger.py:80 | ✅ Выход из функции handle_message
+  Результат: Сообщение обработано успешно
+2025-09-12 12:18:12 | DEBUG    | logger.py:66 | 🚀 Вход в функцию: main
+2025-09-12 12:18:13 | INFO     | logger.py:89 | ℹ️ ✅ Webhook удален успешно
+2025-09-12 12:18:18 | DEBUG    | logger.py:66 | 🚀 Вход в функцию: handle_message
+  Аргументы: ('Егоров Андрей Федорович',)
+2025-09-12 12:18:18 | DEBUG    | logger.py:66 | 
+  🚀 Вход в функцию: ceo_dispatcher Аргументы: [{'role': 'user', 'content': 'Егоров Андрей Федорович'}]
+2025-09-12 12:18:20 | INFO     | logger.py:89 | ℹ️ ceo_dispatcher, decision: search
+2025-09-12 12:18:20 | INFO     | logger.py:89 | ℹ️ ceo_dispatcher, decision после проверки type_of_request: search, searchclar
+2025-09-12 12:18:20 | DEBUG    | logger.py:66 | 
+  🚀 Вход в функцию: connect_search_dispatcher Аргументы: ([{'role': 'user', 'content': 'Егоров Андрей
+  Федорович'}], [{'role': 'assistant', 'content': '[]'}, {'role': 'user', 'content': 'Егоров Андрей
+  Федорович'}])
+2025-09-12 12:18:20 | DEBUG    | logger.py:66 | 
+  🚀 Вход в функцию: search_dispatcher Аргументы: ([{'role': 'user', 'content': 'Егоров Андрей
+  Федорович'}], [{'role': 'assistant', 'content': '[]'}, {'role': 'user', 'content': 'Егоров Андрей
+  Федорович'}])
+2025-09-12 12:18:20 | INFO     | logger.py:113 | 🔍 Отправляю запрос к ИИ (сообщений: 1)
+2025-09-12 12:18:22 | INFO     | logger.py:113 | 🔍 ИИ вызывает функцию: sort_employee
+2025-09-12 12:18:22 | INFO     | logger.py:113 | 🔍 Выполняю sort_employee с аргументом: Егоров Андрей Федорович
+2025-09-12 12:18:22 | DEBUG    | logger.py:66 | 🚀 Вход в функцию: sort_employee
+  Аргументы: ('Егоров Андрей Федорович',)
+2025-09-12 12:18:22 | INFO     | logger.py:113 | 🔍 Ищу сотрудников по фильтру: 'Егоров Андрей Федорович'
+2025-09-12 12:18:22 | DEBUG    | logger.py:66 | 🚀 Вход в функцию: call_external_api
+2025-09-12 12:18:22 | INFO     | logger.py:125 | 🌐 Выполняю запрос к API: http://labor.tetrakom-crm-miniapp.ru/api/people
+2025-09-12 12:18:23 | INFO     | logger.py:125 | 🌐 API запрос успешен, получено 1210089 символов
+2025-09-12 12:18:23 | DEBUG    | logger.py:80 | ✅ Выход из функции call_external_api
+  Результат: 3
+2025-09-12 12:18:24 | ERROR    | logger.py:97 | ❌ 
+  ❌ Ошибка выполнения функции sort_employee: Error code: 400 - {'error': {'traceId':
+  '9a991d76-15ec-4c55-90db-ec1486d238e6', 'message': 'HTTP request error: 400: This endpoint\'s
+  maximum context length is 1047576 tokens. However, you requested about 1362467 tokens. Please reduce
+  the length of either one, or use the "middle-out" transform to compress your prompt automatically.',
+  'code': 'LLM_REQUEST_ERROR'}}
+2025-09-12 12:18:24 | DEBUG    | logger.py:80 | 
+  ❌ Выход из функции search_dispatcher с ошибкой: ❌ Ошибка выполнения функции sort_employee: Error
+  code: 400 - {'error': {'traceId': '9a991d76-15ec-4c55-90db-ec1486d238e6', 'message': 'HTTP request
+  error: 400: This endpoint\'s maximum context length is 1047576 tokens. However, you requested about
+  1362467 tokens. Please reduce the length of either one, or use the "middle-out" transform to
+  compress your prompt automatically.', 'code': 'LLM_REQUEST_ERROR'}}
+2025-09-12 12:18:24 | INFO     | logger.py:105 | ✅ 
+  Результат поиска сотрудников connect_search_dispatcher: ❌ Ошибка выполнения функции sort_employee:
+  Error code: 400 - {'error': {'traceId': '9a991d76-15ec-4c55-90db-ec1486d238e6', 'message': 'HTTP
+  request error: 400: This endpoint\'s maximum context length is 1047576 tokens. However, you
+  requested about 1362467 tokens. Please reduce the length of either one, or use the "middle-out"
+  transform to compress your prompt automatically.', 'code': 'LLM_REQUEST_ERROR'}}
+2025-09-12 12:18:24 | DEBUG    | logger.py:80 | 
+  ✅ Выход из функции connect_search_dispatcher Результат: {'type': 'searchclar', 'message': '❌ Ошибка
+  выполнения функции sort_employee: Error code: 400 - {\'error\': {\'traceId\':
+  \'9a991d76-15ec-4c55-90db-ec1486d238e6\', \'message\': \'HTTP request error: 400: This endpoint\\\'s
+  maximum context length is 1047576 tokens. However, you requested about 1362467 tokens. Please reduce
+  the length of either one, or use the "middle-out" transform to compress your prompt
+  automatically.\', \'code\': \'LLM_REQUEST_ERROR\'}}', 'chat_history_search': '[]'}
+2025-09-12 12:18:24 | DEBUG    | logger.py:80 | ✅ Выход из функции handle_message
+  Результат: Сообщение обработано успешно
+2025-09-12 12:19:39 | DEBUG    | logger.py:80 | ✅ Выход из функции main
+  Результат: Бот запущен успешно
+2025-09-12 12:24:40 | DEBUG    | logger.py:66 | 🚀 Вход в функцию: main
+2025-09-12 12:24:40 | INFO     | logger.py:89 | ℹ️ ✅ Webhook удален успешно
+2025-09-12 12:24:48 | DEBUG    | logger.py:66 | 🚀 Вход в функцию: handle_message
+  Аргументы: ('Егоров Андрей Федорович',)
+2025-09-12 12:24:48 | DEBUG    | logger.py:66 | 
+  🚀 Вход в функцию: ceo_dispatcher Аргументы: [{'role': 'user', 'content': 'Егоров Андрей Федорович'}]
+2025-09-12 12:24:53 | INFO     | logger.py:89 | ℹ️ ceo_dispatcher, decision: search
+2025-09-12 12:24:53 | INFO     | logger.py:89 | ℹ️ ceo_dispatcher, decision после проверки type_of_request: search, 
+2025-09-12 12:24:53 | DEBUG    | logger.py:66 | 
+  🚀 Вход в функцию: connect_search_dispatcher Аргументы: ([{'role': 'user', 'content': 'Егоров Андрей
+  Федорович'}], [{'role': 'user', 'content': 'Егоров Андрей Федорович'}])
+2025-09-12 12:24:53 | DEBUG    | logger.py:66 | 
+  🚀 Вход в функцию: search_dispatcher Аргументы: ([{'role': 'user', 'content': 'Егоров Андрей
+  Федорович'}], [{'role': 'user', 'content': 'Егоров Андрей Федорович'}])
+2025-09-12 12:24:53 | INFO     | logger.py:113 | 🔍 Отправляю запрос к ИИ (сообщений: 1)
+2025-09-12 12:24:54 | INFO     | logger.py:113 | 🔍 ИИ вызывает функцию: sort_employee
+2025-09-12 12:24:54 | INFO     | logger.py:113 | 🔍 Выполняю sort_employee с аргументом: Егоров Андрей Федорович
+2025-09-12 12:24:54 | DEBUG    | logger.py:66 | 🚀 Вход в функцию: sort_employee
+  Аргументы: ('Егоров Андрей Федорович',)
+2025-09-12 12:24:54 | INFO     | logger.py:113 | 🔍 Ищу сотрудников по фильтру: 'Егоров Андрей Федорович'
+2025-09-12 12:24:54 | DEBUG    | logger.py:66 | 🚀 Вход в функцию: call_external_api
+2025-09-12 12:24:54 | INFO     | logger.py:125 | 🌐 Выполняю запрос к API: http://labor.tetrakom-crm-miniapp.ru/api/people
+2025-09-12 12:24:55 | INFO     | logger.py:125 | 🌐 API запрос успешен, получено 1210089 символов
+2025-09-12 12:24:55 | DEBUG    | logger.py:80 | ✅ Выход из функции call_external_api
+  Результат: 3
+2025-09-12 12:24:58 | ERROR    | logger.py:97 | ❌ 
+  ❌ Ошибка выполнения функции sort_employee: Error code: 400 - {'error': {'traceId':
+  '6fffa5ac-f4ac-4d72-b960-118b9cddeccd', 'message': 'HTTP request error: 400: This endpoint\'s
+  maximum context length is 1047576 tokens. However, you requested about 1362467 tokens. Please reduce
+  the length of either one, or use the "middle-out" transform to compress your prompt automatically.',
+  'code': 'LLM_REQUEST_ERROR'}}
+2025-09-12 12:24:58 | DEBUG    | logger.py:80 | 
+  ❌ Выход из функции search_dispatcher с ошибкой: ❌ Ошибка выполнения функции sort_employee: Error
+  code: 400 - {'error': {'traceId': '6fffa5ac-f4ac-4d72-b960-118b9cddeccd', 'message': 'HTTP request
+  error: 400: This endpoint\'s maximum context length is 1047576 tokens. However, you requested about
+  1362467 tokens. Please reduce the length of either one, or use the "middle-out" transform to
+  compress your prompt automatically.', 'code': 'LLM_REQUEST_ERROR'}}
+2025-09-12 12:24:58 | INFO     | logger.py:105 | ✅ 
+  Результат поиска сотрудников connect_search_dispatcher: ❌ Ошибка выполнения функции sort_employee:
+  Error code: 400 - {'error': {'traceId': '6fffa5ac-f4ac-4d72-b960-118b9cddeccd', 'message': 'HTTP
+  request error: 400: This endpoint\'s maximum context length is 1047576 tokens. However, you
+  requested about 1362467 tokens. Please reduce the length of either one, or use the "middle-out"
+  transform to compress your prompt automatically.', 'code': 'LLM_REQUEST_ERROR'}}
+2025-09-12 12:24:58 | DEBUG    | logger.py:80 | 
+  ✅ Выход из функции connect_search_dispatcher Результат: {'type': 'searchclar', 'message': '❌ Ошибка
+  выполнения функции sort_employee: Error code: 400 - {\'error\': {\'traceId\':
+  \'6fffa5ac-f4ac-4d72-b960-118b9cddeccd\', \'message\': \'HTTP request error: 400: This endpoint\\\'s
+  maximum context length is 1047576 tokens. However, you requested about 1362467 tokens. Please reduce
+  the length of either one, or use the "middle-out" transform to compress your prompt
+  automatically.\', \'code\': \'LLM_REQUEST_ERROR\'}}', 'chat_history_search': '[]'}
+2025-09-12 12:24:58 | DEBUG    | logger.py:80 | ✅ Выход из функции handle_message
+  Результат: Сообщение обработано успешно
+2025-09-12 12:27:07 | DEBUG    | logger.py:66 | 🚀 Вход в функцию: main
+2025-09-12 12:27:08 | INFO     | logger.py:89 | ℹ️ ✅ Webhook удален успешно
+2025-09-12 12:27:47 | DEBUG    | logger.py:66 | 🚀 Вход в функцию: main
+2025-09-12 12:27:47 | INFO     | logger.py:89 | ℹ️ ✅ Webhook удален успешно
+2025-09-12 12:28:21 | DEBUG    | logger.py:66 | 🚀 Вход в функцию: handle_message
+  Аргументы: ('Егоров Андрей Федорович',)
+2025-09-12 12:28:21 | DEBUG    | logger.py:66 | 
+  🚀 Вход в функцию: ceo_dispatcher Аргументы: [{'role': 'user', 'content': 'Егоров Андрей Федорович'}]
+2025-09-12 12:28:23 | INFO     | logger.py:89 | ℹ️ ceo_dispatcher, decision: search
+2025-09-12 12:28:23 | INFO     | logger.py:89 | ℹ️ ceo_dispatcher, decision после проверки type_of_request: search, 
+2025-09-12 12:28:23 | DEBUG    | logger.py:66 | 
+  🚀 Вход в функцию: connect_search_dispatcher Аргументы: ([{'role': 'user', 'content': 'Егоров Андрей
+  Федорович'}], [{'role': 'user', 'content': 'Егоров Андрей Федорович'}])
+2025-09-12 12:28:23 | DEBUG    | logger.py:66 | 
+  🚀 Вход в функцию: search_dispatcher Аргументы: ([{'role': 'user', 'content': 'Егоров Андрей
+  Федорович'}], [{'role': 'user', 'content': 'Егоров Андрей Федорович'}])
+2025-09-12 12:28:23 | INFO     | logger.py:113 | 🔍 Отправляю запрос к ИИ (сообщений: 1)
+2025-09-12 12:28:24 | INFO     | logger.py:113 | 🔍 ИИ вызывает функцию: sort_employee
+2025-09-12 12:28:24 | INFO     | logger.py:113 | 🔍 Выполняю sort_employee с аргументом: Егоров Андрей Федорович
+2025-09-12 12:28:24 | DEBUG    | logger.py:66 | 🚀 Вход в функцию: sort_employee
+  Аргументы: ('Егоров Андрей Федорович',)
+2025-09-12 12:28:24 | INFO     | logger.py:113 | 🔍 Ищу сотрудников по фильтру: 'Егоров Андрей Федорович'
+2025-09-12 12:28:24 | DEBUG    | logger.py:66 | 🚀 Вход в функцию: call_external_api
+2025-09-12 12:28:24 | INFO     | logger.py:125 | 🌐 Выполняю запрос к API: http://labor.tetrakom-crm-miniapp.ru/api/people
+2025-09-12 12:28:25 | INFO     | logger.py:125 | 🌐 API запрос успешен, получено 1210089 символов
+2025-09-12 12:28:25 | DEBUG    | logger.py:80 | ✅ Выход из функции call_external_api
+  Результат: 3
+2025-09-12 12:28:26 | ERROR    | logger.py:97 | ❌ 
+  ❌ Ошибка выполнения функции sort_employee: Error code: 400 - {'error': {'traceId':
+  '9772f0cf-c6d8-490a-a427-389ff3cc8638', 'message': 'HTTP request error: 400: This endpoint\'s
+  maximum context length is 1047576 tokens. However, you requested about 1362467 tokens. Please reduce
+  the length of either one, or use the "middle-out" transform to compress your prompt automatically.',
+  'code': 'LLM_REQUEST_ERROR'}}
+2025-09-12 12:28:26 | DEBUG    | logger.py:80 | 
+  ❌ Выход из функции search_dispatcher с ошибкой: ❌ Ошибка выполнения функции sort_employee: Error
+  code: 400 - {'error': {'traceId': '9772f0cf-c6d8-490a-a427-389ff3cc8638', 'message': 'HTTP request
+  error: 400: This endpoint\'s maximum context length is 1047576 tokens. However, you requested about
+  1362467 tokens. Please reduce the length of either one, or use the "middle-out" transform to
+  compress your prompt automatically.', 'code': 'LLM_REQUEST_ERROR'}}
+2025-09-12 12:28:26 | INFO     | logger.py:105 | ✅ 
+  Результат поиска сотрудников connect_search_dispatcher: ❌ Ошибка выполнения функции sort_employee:
+  Error code: 400 - {'error': {'traceId': '9772f0cf-c6d8-490a-a427-389ff3cc8638', 'message': 'HTTP
+  request error: 400: This endpoint\'s maximum context length is 1047576 tokens. However, you
+  requested about 1362467 tokens. Please reduce the length of either one, or use the "middle-out"
+  transform to compress your prompt automatically.', 'code': 'LLM_REQUEST_ERROR'}}
+2025-09-12 12:28:26 | DEBUG    | logger.py:80 | 
+  ✅ Выход из функции connect_search_dispatcher Результат: {'type': 'searchclar', 'message': '❌ Ошибка
+  выполнения функции sort_employee: Error code: 400 - {\'error\': {\'traceId\':
+  \'9772f0cf-c6d8-490a-a427-389ff3cc8638\', \'message\': \'HTTP request error: 400: This endpoint\\\'s
+  maximum context length is 1047576 tokens. However, you requested about 1362467 tokens. Please reduce
+  the length of either one, or use the "middle-out" transform to compress your prompt
+  automatically.\', \'code\': \'LLM_REQUEST_ERROR\'}}', 'chat_history_search': '[]'}
+2025-09-12 12:28:26 | DEBUG    | logger.py:80 | ✅ Выход из функции handle_message
+  Результат: Сообщение обработано успешно
