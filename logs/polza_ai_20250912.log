@@ -517,3 +517,57 @@
   automatically.\', \'code\': \'LLM_REQUEST_ERROR\'}}', 'chat_history_search': '[]'}
 2025-09-12 12:28:26 | DEBUG    | logger.py:80 | ✅ Выход из функции handle_message
   Результат: Сообщение обработано успешно
+2025-09-12 12:36:34 | DEBUG    | logger.py:66 | 🚀 Вход в функцию: main
+2025-09-12 12:36:35 | INFO     | logger.py:89 | ℹ️ ✅ Webhook удален успешно
+2025-09-12 12:37:08 | DEBUG    | logger.py:66 | 🚀 Вход в функцию: handle_message
+  Аргументы: ('Егоров Андрей Федорович',)
+2025-09-12 12:37:09 | DEBUG    | logger.py:66 | 
+  🚀 Вход в функцию: ceo_dispatcher Аргументы: [{'role': 'user', 'content': 'Егоров Андрей Федорович'}]
+2025-09-12 12:37:10 | INFO     | logger.py:89 | ℹ️ ceo_dispatcher, decision: search
+2025-09-12 12:37:10 | INFO     | logger.py:89 | ℹ️ ceo_dispatcher, decision после проверки type_of_request: search, 
+2025-09-12 12:37:10 | DEBUG    | logger.py:66 | 
+  🚀 Вход в функцию: connect_search_dispatcher Аргументы: ([{'role': 'user', 'content': 'Егоров Андрей
+  Федорович'}], [{'role': 'user', 'content': 'Егоров Андрей Федорович'}])
+2025-09-12 12:37:10 | DEBUG    | logger.py:66 | 
+  🚀 Вход в функцию: search_dispatcher Аргументы: ([{'role': 'user', 'content': 'Егоров Андрей
+  Федорович'}], [{'role': 'user', 'content': 'Егоров Андрей Федорович'}])
+2025-09-12 12:37:10 | INFO     | logger.py:113 | 🔍 Отправляю запрос к ИИ (сообщений: 1)
+2025-09-12 12:37:12 | INFO     | logger.py:113 | 🔍 ИИ вызывает функцию: sort_employee
+2025-09-12 12:37:12 | INFO     | logger.py:113 | 🔍 Выполняю sort_employee с аргументом: Егоров Андрей Федорович
+2025-09-12 12:37:12 | DEBUG    | logger.py:66 | 🚀 Вход в функцию: sort_employee
+  Аргументы: ('Егоров Андрей Федорович',)
+2025-09-12 12:37:12 | INFO     | logger.py:113 | 🔍 Ищу сотрудников по фильтру: 'Егоров Андрей Федорович'
+2025-09-12 12:37:12 | DEBUG    | logger.py:66 | 🚀 Вход в функцию: call_external_api
+2025-09-12 12:37:12 | INFO     | logger.py:125 | 🌐 Выполняю запрос к API: http://labor.tetrakom-crm-miniapp.ru/api/people/compact
+2025-09-12 12:37:12 | INFO     | logger.py:125 | 🌐 API запрос успешен, получено 335106 символов
+2025-09-12 12:37:12 | DEBUG    | logger.py:80 | ✅ Выход из функции call_external_api
+  Результат: 189
+2025-09-12 12:37:13 | ERROR    | logger.py:97 | ❌ 
+  ❌ Ошибка выполнения функции sort_employee: Error code: 400 - {'error': {'traceId':
+  '27f196d7-d561-4b11-acc2-4a58d0f4517c', 'message': 'HTTP request error: 400: This endpoint\'s
+  maximum context length is 1047576 tokens. However, you requested about 1122182 tokens. Please reduce
+  the length of either one, or use the "middle-out" transform to compress your prompt automatically.',
+  'code': 'LLM_REQUEST_ERROR'}}
+2025-09-12 12:37:13 | DEBUG    | logger.py:80 | 
+  ❌ Выход из функции search_dispatcher с ошибкой: ❌ Ошибка выполнения функции sort_employee: Error
+  code: 400 - {'error': {'traceId': '27f196d7-d561-4b11-acc2-4a58d0f4517c', 'message': 'HTTP request
+  error: 400: This endpoint\'s maximum context length is 1047576 tokens. However, you requested about
+  1122182 tokens. Please reduce the length of either one, or use the "middle-out" transform to
+  compress your prompt automatically.', 'code': 'LLM_REQUEST_ERROR'}}
+2025-09-12 12:37:13 | INFO     | logger.py:105 | ✅ 
+  Результат поиска сотрудников connect_search_dispatcher: ❌ Ошибка выполнения функции sort_employee:
+  Error code: 400 - {'error': {'traceId': '27f196d7-d561-4b11-acc2-4a58d0f4517c', 'message': 'HTTP
+  request error: 400: This endpoint\'s maximum context length is 1047576 tokens. However, you
+  requested about 1122182 tokens. Please reduce the length of either one, or use the "middle-out"
+  transform to compress your prompt automatically.', 'code': 'LLM_REQUEST_ERROR'}}
+2025-09-12 12:37:13 | DEBUG    | logger.py:80 | 
+  ✅ Выход из функции connect_search_dispatcher Результат: {'type': 'searchclar', 'message': '❌ Ошибка
+  выполнения функции sort_employee: Error code: 400 - {\'error\': {\'traceId\':
+  \'27f196d7-d561-4b11-acc2-4a58d0f4517c\', \'message\': \'HTTP request error: 400: This endpoint\\\'s
+  maximum context length is 1047576 tokens. However, you requested about 1122182 tokens. Please reduce
+  the length of either one, or use the "middle-out" transform to compress your prompt
+  automatically.\', \'code\': \'LLM_REQUEST_ERROR\'}}', 'chat_history_search': '[]'}
+2025-09-12 12:37:13 | DEBUG    | logger.py:80 | ✅ Выход из функции handle_message
+  Результат: Сообщение обработано успешно
+2025-09-12 12:46:01 | DEBUG    | logger.py:66 | 🚀 Вход в функцию: main
+2025-09-12 12:46:01 | INFO     | logger.py:89 | ℹ️ ✅ Webhook удален успешно
