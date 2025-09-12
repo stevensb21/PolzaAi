@@ -345,16 +345,16 @@ async def sort_employee(employee):
     search_log(f"Ищу сотрудников по фильтру: '{employee}'")
     
     # Получаем данные сотрудников
-    json_employee = await call_external_api()
+    api_response = await call_external_api()
 
     
     # Проверяем на ошибки API
-    if isinstance(json_employee, dict) and "error" in json_employee:
-        log_function_exit("sort_employee", error=json_employee)
-        return json_employee
+    if isinstance(api_response, dict) and "error" in api_response:
+        log_function_exit("sort_employee", error=api_response)
+        return api_response
     
-    # Проверяем, что json_employee не None и не содержит ошибок
-    if json_employee is None:
+    # Проверяем, что api_response не None и не содержит ошибок
+    if api_response is None:
         error_msg = "Данные сотрудников не получены"
         error(error_msg)
         log_function_exit("sort_employee", error=error_msg)
@@ -362,6 +362,13 @@ async def sort_employee(employee):
             "error": error_msg,
             "message": "❌ Ошибка: не удалось получить данные сотрудников"
         }
+    
+    # Извлекаем массив data из ответа API
+    if isinstance(api_response, dict) and "data" in api_response:
+        json_employee = api_response["data"]
+    else:
+        # Fallback для старого формата (если API вернет просто массив)
+        json_employee = api_response
     
     # Безопасно сериализуем JSON
     try:
