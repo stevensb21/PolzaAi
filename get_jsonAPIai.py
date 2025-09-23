@@ -280,19 +280,44 @@ async def call_external_api():
         
         api(f"Выполняю запрос к API: {BASE_URL}/api/people/compact")
         
-        # Сначала пробуем получить все данные без лимита
+        # Пробуем разные варианты получения данных
         try:
+            # Сначала пробуем с большим лимитом
+            debug("Пробуем получить данные с лимитом 1000")
             resp = requests.get(
-                f"{BASE_URL}/api/people",  # Без лимита - получаем всех людей
+                f"{BASE_URL}/api/people/compact?limit=1000",  # Устанавливаем лимит 1000 для получения всех людей
                 timeout=60,  # Увеличиваем таймаут для больших запросов
                 proxies={"http": None, "https": None},
                 headers=headers
             )
+            
+            # Проверяем, сколько записей получили
+            if resp.status_code == 200:
+                data = resp.json()
+                if isinstance(data, dict) and 'data' in data:
+                    records_count = len(data['data'])
+                    debug(f"Получено {records_count} записей с лимитом 1000")
+                    
+                    # Если получили мало записей, пробуем без лимита
+                    if records_count < 200:  # Если меньше 200, пробуем без лимита
+                        debug("Получено мало записей, пробуем без лимита")
+                        resp_no_limit = requests.get(
+                            f"{BASE_URL}/api/people",  # Без лимита
+                            timeout=60,
+                            proxies={"http": None, "https": None},
+                            headers=headers
+                        )
+                        if resp_no_limit.status_code == 200:
+                            debug("Успешно получили данные без лимита")
+                            resp = resp_no_limit
+                        else:
+                            debug(f"Запрос без лимита вернул статус {resp_no_limit.status_code}")
+            
         except requests.exceptions.Timeout:
-            # Если таймаут, пробуем с лимитом
-            debug("Таймаут без лимита, пробуем с лимитом 1000")
+            # Если таймаут, пробуем с меньшим лимитом
+            debug("Таймаут с лимитом 1000, пробуем с лимитом 500")
             resp = requests.get(
-                f"{BASE_URL}/api/people/compact?limit=1000",  # Увеличиваем лимит для получения всех людей
+                f"{BASE_URL}/api/people/compact?limit=500",  # Уменьшаем лимит при таймауте
                 timeout=60,  # Увеличиваем таймаут для больших запросов
                 proxies={"http": None, "https": None},
                 headers=headers
@@ -317,9 +342,19 @@ async def call_external_api():
             if isinstance(data, dict) and 'data' in data:
                 records_count = len(data['data']) if isinstance(data['data'], list) else 1
                 api(f"API запрос успешен, получено {records_count} записей сотрудников")
+                debug(f"Структура данных: dict с ключом 'data', содержит {records_count} записей")
             else:
                 records_count = len(data) if isinstance(data, list) else 1
                 api(f"API запрос успешен, получено {records_count} записей сотрудников")
+                debug(f"Структура данных: {type(data)}, содержит {records_count} записей")
+            
+            # Проверяем, есть ли пагинация
+            if isinstance(data, dict) and 'pagination' in data:
+                pagination = data['pagination']
+                debug(f"Информация о пагинации: {pagination}")
+                if 'total' in pagination:
+                    total_records = pagination['total']
+                    api(f"Всего записей в базе: {total_records}, получено: {records_count}")
             
             log_function_exit("call_external_api", result=records_count)
             return data
