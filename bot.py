@@ -149,16 +149,25 @@ async def send_ready_order_notification(order_data):
         
         # Формируем сообщение в том же формате, что и основной ответ
         birth_date = employee.get("birth_date", "Не указана")
-        if birth_date != "Не указана" and birth_date:
+        if birth_date != "Не указана" and birth_date and birth_date != "null":
             # Преобразуем дату из ISO формата в DD.MM.YYYY
             try:
                 from datetime import datetime
-                if "T" in birth_date:
+                # Если дата в формате 000000Z (некорректная дата)
+                if str(birth_date).endswith("000000Z") or "000000" in str(birth_date):
+                    birth_date = "не указана"
+                elif "T" in birth_date:
                     birth_date = birth_date.split("T")[0]
-                date_obj = datetime.strptime(birth_date, "%Y-%m-%d")
-                birth_date = date_obj.strftime("%d.%m.%Y")
-            except:
-                pass
+                    date_obj = datetime.strptime(birth_date, "%Y-%m-%d")
+                    birth_date = date_obj.strftime("%d.%m.%Y")
+                else:
+                    # Если дата уже в правильном формате
+                    pass
+            except Exception as e:
+                debug(f"Ошибка форматирования даты {birth_date}: {e}")
+                birth_date = "не указана"
+        else:
+            birth_date = "не указана"
         
         # Формируем список сертификатов с описаниями
         certificates_text = ""
@@ -177,13 +186,18 @@ async def send_ready_order_notification(order_data):
         
         # Отправляем уведомление всем подписанным пользователям
         info(f"Список пользователей для уведомлений: {notification_users}")
+        info(f"Количество пользователей для уведомлений: {len(notification_users)}")
+        debug(f"Детальная информация о пользователях: {list(notification_users.keys())}")
+        
         for user_id, user_info in notification_users.items():
             try:
                 chat_id = user_info["chat_id"]
                 user_name = user_info["name"]
+                info(f"Отправляем уведомление пользователю {user_name} (ID: {user_id}, chat_id: {chat_id})")
                 
                 # Отправляем текстовое сообщение
                 bot.send_message(chat_id, message_text, parse_mode="Markdown")
+                info(f"✅ Уведомление успешно отправлено пользователю {user_name}")
                 
                 # Если есть фото, отправляем его
                 if employee_photo and employee_photo != "null":

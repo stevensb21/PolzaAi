@@ -294,10 +294,18 @@ async def format_message(message):
                 from datetime import datetime
                 date_obj = datetime.fromisoformat(str(birth_date).replace("Z", "+00:00"))
                 formatted_date = date_obj.strftime("%d.%m.%Y")
+            # Если дата в формате 000000Z (некорректная дата)
+            elif str(birth_date).endswith("000000Z"):
+                formatted_date = "не указана"
             else:
                 formatted_date = str(birth_date)
-        except:
-            formatted_date = str(birth_date)
+        except Exception as e:
+            debug(f"Ошибка форматирования даты {birth_date}: {e}")
+            # Если дата содержит только нули или некорректная
+            if "000000" in str(birth_date) or str(birth_date).strip() == "":
+                formatted_date = "не указана"
+            else:
+                formatted_date = str(birth_date)
     else:
         formatted_date = "не указана"
     
@@ -537,6 +545,9 @@ async def updatePerson(order_json):
                 
                 if response.status_code == 200 or response.status_code == 201:
                     success(f"Сертификат {id_certificate} успешно добавлен для сотрудника")
+                elif response.status_code == 422:
+                    # Сертификат уже привязан к этому человеку
+                    info(f"Сертификат {id_certificate} уже привязан к сотруднику - пропускаем")
                 else:
                     error(f"Ошибка API для сертификата {id_certificate}: {response.status_code} - {response.text}")
         
@@ -544,26 +555,33 @@ async def updatePerson(order_json):
         
         # Отправляем уведомления о готовой заявке
         try:
+            info(f"Начинаем отправку уведомлений для заказа: {order_json}")
             from bot import send_ready_order_notification
             # Используем существующий event loop или создаем новый
             try:
                 loop = asyncio.get_event_loop()
                 if loop.is_running():
                     # Если loop уже запущен, создаем задачу
+                    info("Event loop уже запущен, создаем задачу для отправки уведомлений")
                     asyncio.create_task(send_ready_order_notification(order_json))
                 else:
                     # Если loop не запущен, запускаем его
+                    info("Event loop не запущен, запускаем его для отправки уведомлений")
                     loop.run_until_complete(send_ready_order_notification(order_json))
             except RuntimeError:
                 # Если нет активного loop, создаем новый
+                info("Создаем новый event loop для отправки уведомлений")
                 loop = asyncio.new_event_loop()
                 asyncio.set_event_loop(loop)
                 try:
                     loop.run_until_complete(send_ready_order_notification(order_json))
                 finally:
                     loop.close()
+            info("✅ Уведомления отправлены успешно")
         except Exception as e:
-            error(f"Ошибка при отправке уведомлений: {e}")
+            error(f"❌ Ошибка при отправке уведомлений: {e}")
+            import traceback
+            error(f"Полная трассировка ошибки: {traceback.format_exc()}")
         
         log_function_exit("updatePerson", result=f"✅ Сертификаты успешно добавлены для {employee.get('full_name', 'Неизвестно')}")
         return f"✅ Сертификаты успешно добавлены для {employee.get('full_name', 'Неизвестно')}"
