@@ -558,35 +558,7 @@ async def updatePerson(order_json):
         
         success(f"Все сертификаты обработаны для сотрудника {employee.get('full_name', 'Неизвестно')}")
         
-        # Отправляем уведомления о готовой заявке
-        try:
-            info(f"Начинаем отправку уведомлений для заказа: {order_json}")
-            from bot import send_ready_order_notification
-            # Используем существующий event loop или создаем новый
-            try:
-                loop = asyncio.get_event_loop()
-                if loop.is_running():
-                    # Если loop уже запущен, создаем задачу
-                    info("Event loop уже запущен, создаем задачу для отправки уведомлений")
-                    asyncio.create_task(send_ready_order_notification(order_json))
-                else:
-                    # Если loop не запущен, запускаем его
-                    info("Event loop не запущен, запускаем его для отправки уведомлений")
-                    loop.run_until_complete(send_ready_order_notification(order_json))
-            except RuntimeError:
-                # Если нет активного loop, создаем новый
-                info("Создаем новый event loop для отправки уведомлений")
-                loop = asyncio.new_event_loop()
-                asyncio.set_event_loop(loop)
-                try:
-                    loop.run_until_complete(send_ready_order_notification(order_json))
-                finally:
-                    loop.close()
-            info("✅ Уведомления отправлены успешно")
-        except Exception as e:
-            error(f"❌ Ошибка при отправке уведомлений: {e}")
-            import traceback
-            error(f"Полная трассировка ошибки: {traceback.format_exc()}")
+        # Уведомления отправляются в addToDatabase, здесь не отправляем
         
         log_function_exit("updatePerson", result=f"✅ Сертификаты успешно добавлены для {employee.get('full_name', 'Неизвестно')}")
         return f"✅ Сертификаты успешно добавлены для {employee.get('full_name', 'Неизвестно')}"
@@ -710,6 +682,7 @@ async def updateEmployeeData(order_json):
 async def addToDatabase(order_json):
     """Добавляет заказ в базу данных"""
     log_function_entry("addToDatabase", args=(order_json,))
+    info(f"🚀 ВХОД В addToDatabase для сотрудника: {order_json.get('employee', {}).get('full_name', 'Неизвестно')}")
     try:
         import requests
         

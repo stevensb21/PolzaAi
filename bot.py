@@ -142,6 +142,7 @@ async def get_certificate_details(certificate_names):
 async def send_ready_order_notification(order_data):
     """Отправляет уведомление о готовой заявке всем подписанным пользователям"""
     try:
+        info(f"🚀 ВХОД В send_ready_order_notification для сотрудника: {order_data.get('employee', {}).get('full_name', 'Неизвестно')}")
         info(f"Начинаем отправку уведомлений для заказа: {order_data}")
         employee = order_data.get("employee", {})
         employee_name = employee.get("full_name", "Неизвестно")
