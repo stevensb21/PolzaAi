@@ -305,6 +305,104 @@ async def send_ready_order_notification(order_data):
     except Exception as e:
         error(f"Ошибка при отправке уведомлений о готовой заявке: {e}")
 
+async def send_existing_certificate_notification(order_data):
+    """Отправляет уведомление о том, что сертификаты уже существуют"""
+    try:
+        info(f"🚀 ВХОД В send_existing_certificate_notification для сотрудника: {order_data.get('employee', {}).get('full_name', 'Неизвестно')}")
+        info(f"Начинаем отправку уведомлений о существующих сертификатах для заказа: {order_data}")
+        employee = order_data.get("employee", {})
+        employee_name = employee.get("full_name", "Неизвестно")
+        employee_photo = employee.get("photo")
+        info(f"Данные сотрудника: {employee_name}, фото: {employee_photo}")
+        
+        # Получаем полную информацию о сертификатах
+        certificate_names = order_data.get("certificate", [])
+        certificate_details = await get_certificate_details(certificate_names)
+        
+        # Формируем сообщение о существующих сертификатах
+        birth_date = employee.get("birth_date", "Не указана")
+        if birth_date != "Не указана" and birth_date and birth_date != "null":
+            try:
+                # Если дата в формате ISO (1974-12-20T00:00:00.000000Z)
+                if "T" in str(birth_date):
+                    from datetime import datetime
+                    date_obj = datetime.fromisoformat(str(birth_date).replace("Z", "+00:00"))
+                    formatted_date = date_obj.strftime("%d.%m.%Y")
+                # Если дата в формате 000000Z (некорректная дата)
+                elif str(birth_date).endswith("000000Z"):
+                    formatted_date = "не указана"
+                else:
+                    formatted_date = str(birth_date)
+            except Exception as e:
+                debug(f"Ошибка форматирования даты {birth_date}: {e}")
+                # Если дата содержит только нули или некорректная
+                if "000000" in str(birth_date) or str(birth_date).strip() == "":
+                    formatted_date = "не указана"
+                else:
+                    formatted_date = str(birth_date)
+        else:
+            formatted_date = "не указана"
+        
+        # Формируем список сертификатов
+        certificate_list = []
+        for cert in certificate_details:
+            cert_name = cert.get("name", "Неизвестно")
+            cert_description = cert.get("description", "Описание отсутствует")
+            certificate_list.append(f"• {cert_name} - {cert_description}")
+        
+        certificates_text = "\n".join(certificate_list)
+        
+        # Формируем сообщение
+        message_text = f"""⚠️ **Уведомление о существующих сертификатах**
+
+У сотрудника **{employee_name}** уже есть следующие сертификаты:
+{certificates_text}
+
+**Данные сотрудника:**
+СНИЛС: {employee.get('snils', 'Не указан')}
+ИНН: {employee.get('inn', 'Не указан')}
+Должность: {employee.get('position', 'Не указана')}
+Дата рождения: {formatted_date}
+Телефон: {employee.get('phone', 'Не указан')}
+
+*Данные сертификаты уже привязаны к сотруднику и не требуют повторного назначения.*"""
+
+        info(f"Список пользователей для уведомлений: {notification_users}")
+        info(f"Количество пользователей для уведомлений: {len(notification_users)}")
+        debug(f"Детальная информация о пользователях: {list(notification_users.keys())}")
+        
+        for user_id, user_info in notification_users.items():
+            try:
+                chat_id = user_info["chat_id"]
+                user_name = user_info["name"]
+                info(f"Отправляем уведомление о существующих сертификатах пользователю {user_name} (ID: {user_id}, chat_id: {chat_id})")
+                
+                # Отправляем текстовое сообщение
+                bot.send_message(chat_id, message_text, parse_mode="Markdown")
+                info(f"✅ Уведомление о существующих сертификатах успешно отправлено пользователю {user_name}")
+                
+                # Если есть фото, отправляем его
+                if employee_photo and employee_photo != "null":
+                    try:
+                        import requests
+                        photo_response = requests.get(employee_photo)
+                        if photo_response.status_code == 200:
+                            bot.send_photo(chat_id, photo_response.content, 
+                                         caption=f"📸 Фото сотрудника: {employee_name}")
+                            info(f"Фото отправлено для {user_name}")
+                    except Exception as e:
+                        error(f"Ошибка при отправке фото для {user_name}: {e}")
+                
+                info(f"Уведомление о существующих сертификатах отправлено пользователю {user_name} (ID: {user_id})")
+                
+            except Exception as e:
+                error(f"Ошибка при отправке уведомления о существующих сертификатах пользователю {user_info['name']}: {e}")
+        
+        info(f"Уведомления о существующих сертификатах для {employee_name} отправлены {len(notification_users)} пользователям")
+        
+    except Exception as e:
+        error(f"Ошибка при отправке уведомлений о существующих сертификатах: {e}")
+
 @bot.message_handler(commands=['start'])
 def start(message):
     """Обработчик команды /start"""

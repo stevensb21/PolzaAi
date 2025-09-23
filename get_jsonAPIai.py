@@ -316,12 +316,12 @@ async def call_external_api():
         except requests.exceptions.Timeout:
             # Если таймаут, пробуем с меньшим лимитом
             debug("Таймаут с лимитом 1000, пробуем с лимитом 500")
-            resp = requests.get(
+        resp = requests.get(
                 f"{BASE_URL}/api/people/compact?limit=500",  # Уменьшаем лимит при таймауте
                 timeout=60,  # Увеличиваем таймаут для больших запросов
-                proxies={"http": None, "https": None},
+            proxies={"http": None, "https": None},
                 headers=headers
-            )
+        )
         
         if resp.status_code != 200:
             error_msg = f"API вернул статус {resp.status_code}"
