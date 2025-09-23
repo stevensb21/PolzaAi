@@ -108,7 +108,7 @@ async def get_certificate_details(certificate_names):
                 certificate_details = []
                 
                 for cert_name in certificate_names:
-                    # Ищем сертификат по названию
+                    # Ищем сертификат по названию (точное совпадение)
                     found = False
                     for cert in certs_list:
                         if isinstance(cert, dict) and cert.get("name", "").lower() == cert_name.lower():
@@ -118,6 +118,25 @@ async def get_certificate_details(certificate_names):
                             })
                             found = True
                             break
+                    
+                    # Если точное совпадение не найдено, ищем по частичному совпадению
+                    if not found:
+                        for cert in certs_list:
+                            if isinstance(cert, dict):
+                                cert_name_lower = cert_name.lower()
+                                cert_db_name_lower = cert.get("name", "").lower()
+                                
+                                # Проверяем различные варианты совпадения
+                                if (cert_name_lower in cert_db_name_lower or 
+                                    cert_db_name_lower in cert_name_lower or
+                                    any(word in cert_db_name_lower for word in cert_name_lower.split() if len(word) > 2)):
+                                    
+                                    certificate_details.append({
+                                        "name": cert.get("name", cert_name),
+                                        "description": cert.get("description", "Описание отсутствует")
+                                    })
+                                    found = True
+                                    break
                     
                     if not found:
                         # Если не найден, добавляем с базовым описанием
