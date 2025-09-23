@@ -418,13 +418,16 @@ async def parsAllCertificates(certificate_names):
     log_function_entry("parsAllCertificates")
     try:
         import requests
+        api_token = os.getenv("API_TOKEN")
+        debug(f"API_TOKEN загружен: {api_token[:10] if api_token else 'НЕ НАЙДЕН'}...")
+        
         resp = requests.get(
             f"{BASE_URL}/api/certificates", 
             timeout=30,  # Увеличиваем таймаут
             proxies={"http": None, "https": None},
             headers={
                 'User-Agent': 'PolzaAI-Bot/1.0',
-                'Authorization': f'Bearer {os.getenv("API_TOKEN")}'
+                'Authorization': f'Bearer {api_token}'
             }
         )
 
@@ -518,13 +521,14 @@ async def updatePerson(order_json):
                 info(f"Отправляю данные в API: {json.dumps(api_data, indent=2, ensure_ascii=False)}")
                 
                 # Отправляем POST запрос
+                api_token = os.getenv("API_TOKEN")
                 response = requests.post(
                     f"{BASE_URL}/api/people-certificates",
                     headers={
                         "Content-Type": "application/json",
                         "Accept": "application/json",
                         "User-Agent": "PolzaAI-Bot/1.0",
-                        "Authorization": f'Bearer {os.getenv("API_TOKEN")}'
+                        "Authorization": f'Bearer {api_token}'
                     },
                     json=api_data,
                     timeout=30,  # Увеличиваем таймаут

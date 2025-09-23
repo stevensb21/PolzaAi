@@ -72,13 +72,16 @@ async def get_certificate_details(certificate_names):
         from pull_order import BASE_URL
         
         # Получаем список всех сертификатов
+        api_token = os.getenv("API_TOKEN")
+        debug(f"API_TOKEN загружен: {api_token[:10] if api_token else 'НЕ НАЙДЕН'}...")
+        
         response = requests.get(
             f"{BASE_URL}/api/certificates",
             timeout=30,
             proxies={"http": None, "https": None},
             headers={
                 'User-Agent': 'PolzaAI-Bot/1.0',
-                'Authorization': f'Bearer {os.getenv("API_TOKEN")}'
+                'Authorization': f'Bearer {api_token}'
             }
         )
         

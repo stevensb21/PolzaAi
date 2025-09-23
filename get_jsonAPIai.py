@@ -256,24 +256,33 @@ async def call_external_api():
     """Вызывает внешний API с надежной обработкой ошибок"""
     log_function_entry("call_external_api")
     try:
+        api_token = os.getenv("API_TOKEN")
+        debug(f"API_TOKEN загружен: {api_token[:10] if api_token else 'НЕ НАЙДЕН'}...")
+        
+        headers = {
+            'User-Agent': 'PolzaAI-Bot/1.0',
+            'Authorization': f'Bearer {api_token}'
+        }
+        debug(f"Заголовки запроса: {headers}")
+        
         api(f"Выполняю запрос к API: {BASE_URL}/api/people/compact")
         resp = requests.get(
             f"{BASE_URL}/api/people/compact?limit=30", 
             timeout=30,  # Увеличиваем таймаут
             proxies={"http": None, "https": None},
-            headers={
-                'User-Agent': 'PolzaAI-Bot/1.0',
-                'Authorization': f'Bearer {os.getenv("API_TOKEN")}'
-            }
+            headers=headers
         )
         
         if resp.status_code != 200:
             error_msg = f"API вернул статус {resp.status_code}"
             error(error_msg)
+            debug(f"Полный ответ API: {resp.text}")
+            debug(f"Заголовки ответа: {dict(resp.headers)}")
             log_function_exit("call_external_api", error=error_msg)
             return {
                 "error": error_msg,
-                "details": f"URL: {BASE_URL}/api/people/compact"
+                "details": f"URL: {BASE_URL}/api/people/compact",
+                "response_text": resp.text
             }
         
         try:
