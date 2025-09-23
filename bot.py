@@ -48,7 +48,8 @@ bot = telebot.TeleBot(TOKEN)
 # Формат: {user_id: {"name": "Имя", "chat_id": chat_id}}
 notification_users = {
     "8316311496": {"name": "Лариса", "chat_id": "8316311496"},
-    "1174287803": {"name": "Пользователь 1174287803", "chat_id": "1174287803"}
+    "1174287803": {"name": "Пользователь 1174287803", "chat_id": "1174287803"}, 
+    "1048507963": {"name": "Фарит", "chat_id": "1048507963"}
 }
 
 def add_notification_user(user_id, name, chat_id):
