@@ -527,6 +527,10 @@ async def updatePerson(order_json):
 
 
         
+        # Отслеживаем успешно добавленные сертификаты
+        added_certificates = []
+        existing_certificates = []
+        
         # Формируем данные для API
         for id_certificate in id_certificates:
             if id_certificate:
@@ -559,15 +563,59 @@ async def updatePerson(order_json):
                 
                 if response.status_code == 200 or response.status_code == 201:
                     success(f"Сертификат {id_certificate} успешно добавлен для сотрудника")
+                    added_certificates.append(id_certificate)
                 elif response.status_code == 422:
                     # Сертификат уже привязан к этому человеку
                     info(f"Сертификат {id_certificate} уже привязан к сотруднику - пропускаем")
+                    existing_certificates.append(id_certificate)
                 else:
                     error(f"Ошибка API для сертификата {id_certificate}: {response.status_code} - {response.text}")
         
         success(f"Все сертификаты обработаны для сотрудника {employee.get('full_name', 'Неизвестно')}")
+        info(f"Добавлено новых сертификатов: {len(added_certificates)}, уже существующих: {len(existing_certificates)}")
         
-        # Уведомления отправляются в addToDatabase, здесь не отправляем
+        # Если есть новые сертификаты, формируем документ и отправляем уведомления
+        if added_certificates:
+            info(f"Есть новые сертификаты, формируем документ и отправляем уведомления")
+            
+            # Получаем названия новых сертификатов для документа
+            new_certificate_names = []
+            for i, cert_id in enumerate(id_certificates):
+                if cert_id in added_certificates and i < len(certificate):
+                    new_certificate_names.append(certificate[i])
+            
+            # Обновляем order_json только с новыми сертификатами
+            updated_order_json = order_json.copy()
+            updated_order_json["certificate"] = new_certificate_names
+            
+            # Отправляем уведомления
+            try:
+                from bot import send_ready_order_notification
+                # Используем существующий event loop или создаем новый
+                try:
+                    loop = asyncio.get_event_loop()
+                    if loop.is_running():
+                        # Если loop уже запущен, создаем задачу
+                        info("Event loop уже запущен, создаем задачу для отправки уведомлений")
+                        asyncio.create_task(send_ready_order_notification(updated_order_json))
+                    else:
+                        # Если loop не запущен, запускаем его
+                        info("Event loop не запущен, запускаем его для отправки уведомлений")
+                        loop.run_until_complete(send_ready_order_notification(updated_order_json))
+                except RuntimeError:
+                    # Если нет активного loop, создаем новый
+                    info("Создаем новый event loop для отправки уведомлений")
+                    loop = asyncio.new_event_loop()
+                    asyncio.set_event_loop(loop)
+                    try:
+                        loop.run_until_complete(send_ready_order_notification(updated_order_json))
+                    finally:
+                        loop.close()
+                info("✅ Уведомления отправлены успешно")
+            except Exception as e:
+                error(f"❌ Ошибка при отправке уведомлений: {e}")
+        else:
+            info("Нет новых сертификатов, уведомления не отправляем")
         
         log_function_exit("updatePerson", result=f"✅ Сертификаты успешно добавлены для {employee.get('full_name', 'Неизвестно')}")
         return f"✅ Сертификаты успешно добавлены для {employee.get('full_name', 'Неизвестно')}"
