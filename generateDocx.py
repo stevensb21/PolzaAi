@@ -176,8 +176,8 @@ def create_tetracom_document(order_data, certificate_details):
 
 
     # Добавляем информацию о продлении
-    for certifcate in certificate_details:
-        cert = doc.add_paragraph('1. ' + certifcate['description'] + '\n' + 'следующим работникам:' )
+    for index, certifcate in enumerate(certificate_details, 1):
+        cert = doc.add_paragraph(f'{index}. ' + certifcate['description'] + '\n' + 'следующим работникам:' )
         for run in cert.runs:
             run.font.size = Pt(11)
             run.font.name = 'Calibri'
@@ -221,13 +221,29 @@ def create_tetracom_document(order_data, certificate_details):
         data_cells = table.rows[1].cells
         employee = order_data['employee']
         
-        # Извлекаем год рождения из даты
-        birth_year = employee['birth_date'].split('.')[-1] if '.' in employee['birth_date'] else employee['birth_date']
+        # Форматируем дату рождения в полном формате дд.мм.гггг
+        birth_date = employee['birth_date']
+        if birth_date and birth_date != "null":
+            try:
+                # Если дата в формате ISO (1974-12-20T00:00:00.000000Z)
+                if "T" in birth_date:
+                    from datetime import datetime
+                    date_obj = datetime.fromisoformat(birth_date.replace("Z", "+00:00"))
+                    birth_date_formatted = date_obj.strftime("%d.%m.%Y")
+                # Если дата уже в формате дд.мм.гггг
+                elif "." in birth_date and len(birth_date.split(".")) == 3:
+                    birth_date_formatted = birth_date
+                else:
+                    birth_date_formatted = birth_date
+            except Exception as e:
+                birth_date_formatted = birth_date
+        else:
+            birth_date_formatted = "не указана"
         
         data = [
             '1'+'\n',  # №
             employee['full_name'],  # ФИО
-            birth_year,  # Год рождения
+            birth_date_formatted,  # Полная дата рождения в формате дд.мм.гггг
             employee['position'],  # Должность
             employee['snils']  # СНИЛС
         ]
