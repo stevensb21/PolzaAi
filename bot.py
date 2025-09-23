@@ -184,6 +184,9 @@ async def send_ready_order_notification(order_data):
                     birth_date = birth_date.split("T")[0]
                     date_obj = datetime.strptime(birth_date, "%Y-%m-%d")
                     birth_date = date_obj.strftime("%d.%m.%Y")
+                elif "." in str(birth_date) and len(str(birth_date).split(".")) == 3:
+                    # Если дата уже в формате дд.мм.гггг
+                    birth_date = str(birth_date)
                 else:
                     # Если дата уже в правильном формате
                     pass
@@ -330,6 +333,9 @@ async def send_existing_certificate_notification(order_data):
                 # Если дата в формате 000000Z (некорректная дата)
                 elif str(birth_date).endswith("000000Z"):
                     formatted_date = "не указана"
+                # Если дата уже в формате дд.мм.гггг
+                elif "." in str(birth_date) and len(str(birth_date).split(".")) == 3:
+                    formatted_date = str(birth_date)
                 else:
                     formatted_date = str(birth_date)
             except Exception as e:
