@@ -185,9 +185,16 @@ async def makeOrderFormat(messages, employee_name, certificate_name):
     else:
         debug("No matching condition found")
     
-    # Проверяем полноту данных (включая фото)
-    required_fields = [snils, inn, position, birth_date, phone, photo]
-    has_missing_data = any(field is None or field == "null" for field in required_fields)
+    # Проверяем полноту данных
+    # Для существующих сотрудников (id не null) фото не обязательно
+    if id_person and id_person != "null":
+        # Существующий сотрудник - проверяем только основные поля
+        required_fields = [snils, inn, position, birth_date, phone]
+        has_missing_data = any(field is None or field == "null" for field in required_fields)
+    else:
+        # Новый сотрудник - проверяем все поля включая фото
+        required_fields = [snils, inn, position, birth_date, phone, photo]
+        has_missing_data = any(field is None or field == "null" for field in required_fields)
     
     # Определяем тип на основе полноты данных
     order_type = "clarification" if has_missing_data else "readyorder"
@@ -238,12 +245,18 @@ async def clarification(messages, order_json):
                     Вот данные для заказа: {json.dumps(order_json, indent=4, ensure_ascii=False)}
 
                     Твоя задача — уточнить данные у пользователя.
-                    Проверь все ли данные в employee есть (включая фото) и если нет, уточни у пользователя запиши сообщение в поле message.
+                    
+                    ВАЖНО: Для существующих сотрудников (id не null) фото НЕ обязательно!
+                    Для новых сотрудников (id = null) фото обязательно!
+                    
+                    Проверь данные в employee:
+                    - Если сотрудник существующий (id не null): проверь только СНИЛС, ИНН, должность, дату рождения, телефон
+                    - Если сотрудник новый (id = null): проверь все поля включая фото
                     
                     ВАЖНО: Если в employee есть поле "photo" и оно НЕ равно null, null, "null" или пустой строке, то фото ЕСТЬ!
                     
-                    Если все данные есть (включая фото), верни order_json, но измени в нем type на "readyorder".
-                    Если данные неполные (включая отсутствие фото), верни order_json, но измени в нем type на "clarification".
+                    Если все необходимые данные есть, верни order_json, но измени в нем type на "readyorder".
+                    Если данные неполные, верни order_json, но измени в нем type на "clarification".
                     
                     ВАЖНО для статуса:
                     - Если сотрудник новый (id = null) и есть все данные → status = "new_employee"
