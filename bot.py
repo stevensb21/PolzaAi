@@ -75,6 +75,11 @@ async def get_certificate_details(certificate_names):
         # Получаем список всех сертификатов
         api_token = os.getenv("API_TOKEN")
         debug(f"API_TOKEN загружен: {api_token[:10] if api_token else 'НЕ НАЙДЕН'}...")
+        debug(f"Полная длина токена: {len(api_token) if api_token else 0}")
+        
+        if not api_token:
+            error("❌ КРИТИЧЕСКАЯ ОШИБКА: API_TOKEN не найден в переменных окружения!")
+            return [{"name": name, "description": "Ошибка: токен не найден"} for name in certificate_names]
         
         response = requests.get(
             f"{BASE_URL}/api/certificates",

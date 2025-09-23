@@ -428,6 +428,11 @@ async def parsAllCertificates(certificate_names):
         import requests
         api_token = os.getenv("API_TOKEN")
         debug(f"API_TOKEN загружен: {api_token[:10] if api_token else 'НЕ НАЙДЕН'}...")
+        debug(f"Полная длина токена: {len(api_token) if api_token else 0}")
+        
+        if not api_token:
+            error("❌ КРИТИЧЕСКАЯ ОШИБКА: API_TOKEN не найден в переменных окружения!")
+            return []
         
         resp = requests.get(
             f"{BASE_URL}/api/certificates", 

@@ -10,6 +10,10 @@ from logger import search as search_log, debug, info, error, critical, success, 
 
 load_dotenv()
 
+# Проверяем загрузку переменных окружения
+debug(f"Переменные окружения загружены: {os.getenv('API_TOKEN') is not None}")
+debug(f"API_TOKEN существует: {bool(os.getenv('API_TOKEN'))}")
+
 
 
 
@@ -258,6 +262,15 @@ async def call_external_api():
     try:
         api_token = os.getenv("API_TOKEN")
         debug(f"API_TOKEN загружен: {api_token[:10] if api_token else 'НЕ НАЙДЕН'}...")
+        debug(f"Полная длина токена: {len(api_token) if api_token else 0}")
+        debug(f"Токен заканчивается на: ...{api_token[-10:] if api_token and len(api_token) > 10 else api_token}")
+        
+        if not api_token:
+            error("❌ КРИТИЧЕСКАЯ ОШИБКА: API_TOKEN не найден в переменных окружения!")
+            return {
+                "error": "API_TOKEN не найден",
+                "details": "Проверьте файл .env и переменную API_TOKEN"
+            }
         
         headers = {
             'User-Agent': 'PolzaAI-Bot/1.0',
