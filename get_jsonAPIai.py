@@ -266,12 +266,24 @@ async def call_external_api():
         debug(f"Заголовки запроса: {headers}")
         
         api(f"Выполняю запрос к API: {BASE_URL}/api/people/compact")
-        resp = requests.get(
-            f"{BASE_URL}/api/people/compact?limit=30", 
-            timeout=30,  # Увеличиваем таймаут
-            proxies={"http": None, "https": None},
-            headers=headers
-        )
+        
+        # Сначала пробуем получить все данные без лимита
+        try:
+            resp = requests.get(
+                f"{BASE_URL}/api/people",  # Без лимита - получаем всех людей
+                timeout=60,  # Увеличиваем таймаут для больших запросов
+                proxies={"http": None, "https": None},
+                headers=headers
+            )
+        except requests.exceptions.Timeout:
+            # Если таймаут, пробуем с лимитом
+            debug("Таймаут без лимита, пробуем с лимитом 1000")
+            resp = requests.get(
+                f"{BASE_URL}/api/people/compact?limit=1000",  # Увеличиваем лимит для получения всех людей
+                timeout=60,  # Увеличиваем таймаут для больших запросов
+                proxies={"http": None, "https": None},
+                headers=headers
+            )
         
         if resp.status_code != 200:
             error_msg = f"API вернул статус {resp.status_code}"
@@ -287,8 +299,16 @@ async def call_external_api():
         
         try:
             data = resp.json()
-            api(f"API запрос успешен, получено {len(str(data))} символов")
-            log_function_exit("call_external_api", result=len(data))
+            
+            # Подсчитываем количество записей
+            if isinstance(data, dict) and 'data' in data:
+                records_count = len(data['data']) if isinstance(data['data'], list) else 1
+                api(f"API запрос успешен, получено {records_count} записей сотрудников")
+            else:
+                records_count = len(data) if isinstance(data, list) else 1
+                api(f"API запрос успешен, получено {records_count} записей сотрудников")
+            
+            log_function_exit("call_external_api", result=records_count)
             return data
         except json.JSONDecodeError as e:
             error_msg = f"Неверный JSON от API: {str(e)}"
