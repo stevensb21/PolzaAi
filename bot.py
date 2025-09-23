@@ -131,12 +131,12 @@ async def get_certificate_details(certificate_names):
                                     cert_db_name_lower in cert_name_lower or
                                     any(word in cert_db_name_lower for word in cert_name_lower.split() if len(word) > 2)):
                                     
-                                    certificate_details.append({
-                                        "name": cert.get("name", cert_name),
-                                        "description": cert.get("description", "Описание отсутствует")
-                                    })
-                                    found = True
-                                    break
+                            certificate_details.append({
+                                "name": cert.get("name", cert_name),
+                                "description": cert.get("description", "Описание отсутствует")
+                            })
+                            found = True
+                            break
                     
                     if not found:
                         # Если не найден, добавляем с базовым описанием
@@ -183,11 +183,11 @@ async def send_ready_order_notification(order_data):
                     birth_date = "не указана"
                 elif "T" in birth_date:
                     birth_date = birth_date.split("T")[0]
-                    date_obj = datetime.strptime(birth_date, "%Y-%m-%d")
-                    birth_date = date_obj.strftime("%d.%m.%Y")
+                date_obj = datetime.strptime(birth_date, "%Y-%m-%d")
+                birth_date = date_obj.strftime("%d.%m.%Y")
                 else:
                     # Если дата уже в правильном формате
-                    pass
+                pass
             except Exception as e:
                 debug(f"Ошибка форматирования даты {birth_date}: {e}")
                 birth_date = "не указана"

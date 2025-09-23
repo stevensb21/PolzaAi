@@ -310,6 +310,9 @@ async def format_message(message):
             # Если дата в формате 000000Z (некорректная дата)
             elif str(birth_date).endswith("000000Z"):
                 formatted_date = "не указана"
+            # Если дата уже в формате дд.мм.гггг
+            elif "." in str(birth_date) and len(str(birth_date).split(".")) == 3:
+                formatted_date = str(birth_date)
             else:
                 formatted_date = str(birth_date)
         except Exception as e:
@@ -324,23 +327,43 @@ async def format_message(message):
     
     # Получаем полную информацию о сертификатах
     certificate_names = message.get("certificate", [])
+    existing_certificates = message.get("existing_certificates", [])
     info(f"Названия сертификатов для получения описаний: {certificate_names}")
+    info(f"Существующие сертификаты: {existing_certificates}")
 
-    try:
-        from bot import get_certificate_details
-        certificate_details = await get_certificate_details(certificate_names)
-        info(f"Полученные детали сертификатов: {certificate_details}")
-        
-        # Формируем список сертификатов с описаниями
-        certificates_text = ""
-        for cert in certificate_details:
-            certificates_text += f"• {cert['name']} - {cert['description']}\n"
-    except Exception as e:
-        error(f"Ошибка при получении описаний сертификатов: {e}")
-        certificates_text = f"{message.get('certificate')}"
+    # Формируем текст для новых сертификатов
+    new_certificates_text = ""
+    if certificate_names:
+        try:
+            from bot import get_certificate_details
+            certificate_details = await get_certificate_details(certificate_names)
+            info(f"Полученные детали сертификатов: {certificate_details}")
+            
+            # Формируем список сертификатов с описаниями
+            for cert in certificate_details:
+                new_certificates_text += f"• {cert['name']} - {cert['description']}\n"
+        except Exception as e:
+            error(f"Ошибка при получении описаний сертификатов: {e}")
+            new_certificates_text = f"{certificate_names}"
+    
+    # Формируем текст для существующих сертификатов
+    existing_certificates_text = ""
+    if existing_certificates:
+        try:
+            from bot import get_certificate_details
+            existing_certificate_details = await get_certificate_details(existing_certificates)
+            info(f"Полученные детали существующих сертификатов: {existing_certificate_details}")
+            
+            # Формируем список существующих сертификатов
+            existing_certificates_text = "\n\n⚠️ **Следующие сертификаты уже существуют у сотрудника и не были добавлены в заказ:**\n"
+            for cert in existing_certificate_details:
+                existing_certificates_text += f"• {cert['name']} - {cert['description']}\n"
+        except Exception as e:
+            error(f"Ошибка при получении описаний существующих сертификатов: {e}")
+            existing_certificates_text = f"\n\n⚠️ **Следующие сертификаты уже существуют:** {existing_certificates}\n"
     
     return {
-        "message": f""" Заказ оформлен и отправлен в базу данных \n для {message.get("employee", {}).get("full_name")} \n с удостоверениями:\n{certificates_text}
+        "message": f""" Заказ оформлен и отправлен в базу данных \n для {message.get("employee", {}).get("full_name")} \n с удостоверениями:\n{new_certificates_text}{existing_certificates_text}
         \n СНИЛС: {message.get("employee", {}).get("snils")} \n ИНН: {message.get("employee", {}).get("inn")} \n Должность: {message.get("employee", {}).get("position")} \n Дата рождения: {formatted_date} \n Телефон: {message.get("employee", {}).get("phone")} """
     }
 
@@ -598,6 +621,14 @@ async def updatePerson(order_json):
             # Обновляем order_json только с новыми сертификатами
             updated_order_json = order_json.copy()
             updated_order_json["certificate"] = new_certificate_names
+            
+            # Добавляем информацию о существующих сертификатах
+            if existing_certificates:
+                existing_certificate_names = []
+                for i, cert_id in enumerate(id_certificates):
+                    if cert_id in existing_certificates and i < len(certificate):
+                        existing_certificate_names.append(certificate[i])
+                updated_order_json["existing_certificates"] = existing_certificate_names
             
             # Отправляем уведомления
             try:
