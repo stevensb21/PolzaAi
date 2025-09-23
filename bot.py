@@ -76,7 +76,10 @@ async def get_certificate_details(certificate_names):
             f"{BASE_URL}/api/certificates",
             timeout=30,
             proxies={"http": None, "https": None},
-            headers={'User-Agent': 'PolzaAI-Bot/1.0'}
+            headers={
+                'User-Agent': 'PolzaAI-Bot/1.0',
+                'Authorization': f'Bearer {os.getenv("API_TOKEN")}'
+            }
         )
         
         if response.status_code == 200:

@@ -422,7 +422,10 @@ async def parsAllCertificates(certificate_names):
             f"{BASE_URL}/api/certificates", 
             timeout=30,  # Увеличиваем таймаут
             proxies={"http": None, "https": None},
-            headers={'User-Agent': 'PolzaAI-Bot/1.0'}
+            headers={
+                'User-Agent': 'PolzaAI-Bot/1.0',
+                'Authorization': f'Bearer {os.getenv("API_TOKEN")}'
+            }
         )
 
         if resp.status_code == 200:
@@ -520,7 +523,8 @@ async def updatePerson(order_json):
                     headers={
                         "Content-Type": "application/json",
                         "Accept": "application/json",
-                        "User-Agent": "PolzaAI-Bot/1.0"
+                        "User-Agent": "PolzaAI-Bot/1.0",
+                        "Authorization": f'Bearer {os.getenv("API_TOKEN")}'
                     },
                     json=api_data,
                     timeout=30,  # Увеличиваем таймаут
@@ -638,7 +642,8 @@ async def updateEmployeeData(order_json):
                 f"http://labor.tetrakom-crm-miniapp.ru/api/people/{employee_id}",
                 headers={
                     "Accept": "application/json",
-                    "User-Agent": "PolzaAI-Bot/1.0"
+                    "User-Agent": "PolzaAI-Bot/1.0",
+                    "Authorization": f'Bearer {os.getenv("API_TOKEN")}'
                 },
                 data=data,
                 files=files,
@@ -652,7 +657,8 @@ async def updateEmployeeData(order_json):
                 headers={
                     "Content-Type": "application/json",
                     "Accept": "application/json",
-                    "User-Agent": "PolzaAI-Bot/1.0"
+                    "User-Agent": "PolzaAI-Bot/1.0",
+                    "Authorization": f'Bearer {os.getenv("API_TOKEN")}'
                 },
                 json=data,
                 timeout=30,
@@ -709,7 +715,8 @@ async def addToDatabase(order_json):
                 "http://labor.tetrakom-crm-miniapp.ru/api/people",
                 headers={
                     "Accept": "application/json",
-                    "User-Agent": "PolzaAI-Bot/1.0"
+                    "User-Agent": "PolzaAI-Bot/1.0",
+                    "Authorization": f'Bearer {os.getenv("API_TOKEN")}'
                 },
                 data=data,
                 files=files,
@@ -723,7 +730,8 @@ async def addToDatabase(order_json):
                 headers={
                     "Content-Type": "application/json",
                     "Accept": "application/json",
-                    "User-Agent": "PolzaAI-Bot/1.0"
+                    "User-Agent": "PolzaAI-Bot/1.0",
+                    "Authorization": f'Bearer {os.getenv("API_TOKEN")}'
                 },
                 json=data,
                 timeout=30,

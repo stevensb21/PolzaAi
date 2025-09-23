@@ -261,7 +261,10 @@ async def call_external_api():
             f"{BASE_URL}/api/people/compact?limit=30", 
             timeout=30,  # Увеличиваем таймаут
             proxies={"http": None, "https": None},
-            headers={'User-Agent': 'PolzaAI-Bot/1.0'}
+            headers={
+                'User-Agent': 'PolzaAI-Bot/1.0',
+                'Authorization': f'Bearer {os.getenv("API_TOKEN")}'
+            }
         )
         
         if resp.status_code != 200:
