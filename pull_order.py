@@ -929,28 +929,7 @@ async def addToDatabase(order_json):
                 error(f"❌ Не удалось получить ID созданного сотрудника: {created_employee_id}")
                 error(f"Ответ API: {people_json}")
             
-            # Отправляем уведомления о готовой заявке
-            try:
-                from bot import send_ready_order_notification
-                # Используем существующий event loop или создаем новый
-                try:
-                    loop = asyncio.get_event_loop()
-                    if loop.is_running():
-                        # Если loop уже запущен, создаем задачу
-                        asyncio.create_task(send_ready_order_notification(order_json))
-                    else:
-                        # Если loop не запущен, запускаем его
-                        loop.run_until_complete(send_ready_order_notification(order_json))
-                except RuntimeError:
-                    # Если нет активного loop, создаем новый
-                    loop = asyncio.new_event_loop()
-                    asyncio.set_event_loop(loop)
-                    try:
-                        loop.run_until_complete(send_ready_order_notification(order_json))
-                    finally:
-                        loop.close()
-            except Exception as e:
-                error(f"Ошибка при отправке уведомлений: {e}")
+            # Уведомления отправляются в updatePerson, поэтому здесь не отправляем
             
             log_function_exit("addToDatabase", result=f"✅ Заказ для {employee.get('full_name')} успешно добавлен в базу данных со статусом 'В ожидании'")
             return f"✅ Заказ для {employee.get('full_name')} успешно добавлен в базу данных со статусом 'В ожидании'"
@@ -964,6 +943,23 @@ async def addToDatabase(order_json):
         print(error_msg)
         log_function_exit("addToDatabase", error=error_msg)
         return error_msg
+
+async def process_order_result(result):
+    """Обрабатывает результат заказа и отправляет уведомления"""
+    # Проверяем статус сотрудника
+    if result.get("status") == "new_employee":
+        # Новый сотрудник - добавляем в базу
+        await addToDatabase(result)
+    elif result.get("status") == "existing_employee_with_photo":
+        # Существующий сотрудник с новым фото - обновляем данные и сертификаты
+        await updateEmployeeData(result)
+        await updatePerson(result)
+    else:
+        # Существующий сотрудник - только обновляем сертификаты
+        await updatePerson(result)
+    
+    formatted_result = await format_message(result)
+    return formatted_result
 
 async def order_dispatcher(messages, chat_history):
     """Запускает диспетчер на основе истории чата"""
@@ -1124,18 +1120,7 @@ async def order_dispatcher(messages, chat_history):
                                     return formatted_result.get("message")
 
                         else:
-                            # Проверяем статус сотрудника
-                            if result.get("status") == "new_employee":
-                                await addToDatabase(result)
-                            elif result.get("status") == "existing_employee_with_photo":
-                                # Существующий сотрудник с новым фото - обновляем данные и сертификаты
-                                await updateEmployeeData(result)
-                                await updatePerson(result)
-                            else:
-                                # Существующий сотрудник - только обновляем сертификаты
-                                await updatePerson(result)
-                            
-                            formatted_result = await format_message(result)
+                            formatted_result = await process_order_result(result)
                             chat_history_order.append({"role": "assistant", "content": json.dumps(formatted_result, ensure_ascii=False)})
                             log_function_exit("order_dispatcher", result=formatted_result.get("message"))
                             return formatted_result.get("message")
@@ -1163,20 +1148,8 @@ async def order_dispatcher(messages, chat_history):
                                         log_function_exit("order_dispatcher", result=parsed_result.get("message"))
                                         return parsed_result.get("message")
                                     else:
-                                        # Проверяем статус сотрудника
-                                        if parsed_result.get("status") == "new_employee":
-                                            # Новый сотрудник - добавляем в базу
-                                            await addToDatabase(parsed_result)
-                                        elif parsed_result.get("status") == "existing_employee_with_photo":
-                                            # Существующий сотрудник с новым фото - обновляем данные и сертификаты
-                                            await updateEmployeeData(parsed_result)
-                                            await updatePerson(parsed_result)
-                                        else:
-                                            # Существующий сотрудник - только обновляем сертификаты
-                                            await updatePerson(parsed_result)
-                                        
-                                        chat_history_order.append({"role": "assistant", "content": json.dumps(parsed_result, ensure_ascii=False)})
-                                        formatted_result = await format_message(parsed_result)
+                                        formatted_result = await process_order_result(parsed_result)
+                                        chat_history_order.append({"role": "assistant", "content": json.dumps(formatted_result, ensure_ascii=False)})
                                         log_function_exit("order_dispatcher", result=formatted_result.get("message"))
                                         return formatted_result.get("message")
                                 except json.JSONDecodeError:
@@ -1188,20 +1161,8 @@ async def order_dispatcher(messages, chat_history):
                                     log_function_exit("order_dispatcher", result=result.get("message"))
                                     return result.get("message")
                                 else:
-                                    # Проверяем статус сотрудника
-                                    if result.get("status") == "new_employee":
-                                        # Новый сотрудник - добавляем в базу
-                                        await addToDatabase(result)
-                                    elif result.get("status") == "existing_employee_with_photo":
-                                        # Существующий сотрудник с новым фото - обновляем данные и сертификаты
-                                        await updateEmployeeData(result)
-                                        await updatePerson(result)
-                                    else:
-                                        # Существующий сотрудник - только обновляем сертификаты
-                                        await updatePerson(result)
-                                    
-                                    chat_history_order.append({"role": "assistant", "content": json.dumps(result, ensure_ascii=False)})
-                                    formatted_result = await format_message(result)
+                                    formatted_result = await process_order_result(result)
+                                    chat_history_order.append({"role": "assistant", "content": json.dumps(formatted_result, ensure_ascii=False)})
                                     log_function_exit("order_dispatcher", result=formatted_result.get("message"))
                                     return formatted_result.get("message")
                         else:
