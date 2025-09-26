@@ -77,7 +77,6 @@ async def ceo_dispatcher(messages):
         response = await client.chat.completions.create(
             model="openai/gpt-4.1-mini",
             messages=messages_with_system,
-            max_tokens=10,
             temperature=0.1
         )
         
