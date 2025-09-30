@@ -193,8 +193,8 @@ async def makeOrderFormat(messages, employee_name, certificate_name):
         has_missing_data = any(field is None or field == "null" for field in required_fields)
     else:
         # Новый сотрудник - проверяем все поля включая фото
-        required_fields = [snils, inn, position, birth_date, phone, photo]
-        has_missing_data = any(field is None or field == "null" for field in required_fields)
+    required_fields = [snils, inn, position, birth_date, phone, photo]
+    has_missing_data = any(field is None or field == "null" for field in required_fields)
     
     # Определяем тип на основе полноты данных
     order_type = "clarification" if has_missing_data else "readyorder"
@@ -321,7 +321,7 @@ async def format_message(message):
             if "000000" in str(birth_date) or str(birth_date).strip() == "":
                 formatted_date = "не указана"
             else:
-                formatted_date = str(birth_date)
+            formatted_date = str(birth_date)
     else:
         formatted_date = "не указана"
     
@@ -334,16 +334,16 @@ async def format_message(message):
     # Формируем текст для новых сертификатов
     new_certificates_text = ""
     if certificate_names:
-        try:
-            from bot import get_certificate_details
-            certificate_details = await get_certificate_details(certificate_names)
-            info(f"Полученные детали сертификатов: {certificate_details}")
-            
-            # Формируем список сертификатов с описаниями
-            for cert in certificate_details:
+    try:
+        from bot import get_certificate_details
+        certificate_details = await get_certificate_details(certificate_names)
+        info(f"Полученные детали сертификатов: {certificate_details}")
+        
+        # Формируем список сертификатов с описаниями
+        for cert in certificate_details:
                 new_certificates_text += f"• {cert['name']} - {cert['description']}\n"
-        except Exception as e:
-            error(f"Ошибка при получении описаний сертификатов: {e}")
+    except Exception as e:
+        error(f"Ошибка при получении описаний сертификатов: {e}")
             new_certificates_text = f"{certificate_names}"
     
     # Формируем текст для существующих сертификатов
@@ -632,30 +632,30 @@ async def updatePerson(order_json):
                 updated_order_json["existing_certificates"] = existing_certificate_names
             
             # Отправляем уведомления
+        try:
+            from bot import send_ready_order_notification
+            # Используем существующий event loop или создаем новый
             try:
-                from bot import send_ready_order_notification
-                # Используем существующий event loop или создаем новый
-                try:
-                    loop = asyncio.get_event_loop()
-                    if loop.is_running():
-                        # Если loop уже запущен, создаем задачу
+                loop = asyncio.get_event_loop()
+                if loop.is_running():
+                    # Если loop уже запущен, создаем задачу
                         info("Event loop уже запущен, создаем задачу для отправки уведомлений")
                         asyncio.create_task(send_ready_order_notification(updated_order_json))
-                    else:
-                        # Если loop не запущен, запускаем его
+                else:
+                    # Если loop не запущен, запускаем его
                         info("Event loop не запущен, запускаем его для отправки уведомлений")
                         loop.run_until_complete(send_ready_order_notification(updated_order_json))
-                except RuntimeError:
-                    # Если нет активного loop, создаем новый
+            except RuntimeError:
+                # Если нет активного loop, создаем новый
                     info("Создаем новый event loop для отправки уведомлений")
-                    loop = asyncio.new_event_loop()
-                    asyncio.set_event_loop(loop)
-                    try:
+                loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(loop)
+                try:
                         loop.run_until_complete(send_ready_order_notification(updated_order_json))
-                    finally:
-                        loop.close()
+                finally:
+                    loop.close()
                 info("✅ Уведомления отправлены успешно")
-            except Exception as e:
+        except Exception as e:
                 error(f"❌ Ошибка при отправке уведомлений: {e}")
         
         elif existing_certificates:

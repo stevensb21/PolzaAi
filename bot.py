@@ -534,8 +534,7 @@ def handle_photo_with_text(message):
                     messages = [
                         {
                             "role": "user", 
-                            "content": text_content,
-                            "photo": file_url
+                            "content": f"{text_content}\n\n[Фото]: {file_url}"
                         }
                     ]
                     
@@ -609,7 +608,7 @@ def handle_message(message):
                 # Добавляем фото в сообщение, если оно есть
                 global last_photo_url
                 if last_photo_url:
-                    messages[0]["photo"] = last_photo_url
+                    messages[0]["content"] += f"\n\n[Фото]: {last_photo_url}"
                     info(f"Добавляем фото в сообщение: {last_photo_url}")
                     # Очищаем фото после использования
                     last_photo_url = None

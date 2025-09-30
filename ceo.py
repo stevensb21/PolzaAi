@@ -91,11 +91,31 @@ async def ceo_dispatcher(messages):
         sanitized_messages = sanitize_messages(messages)
         sanitized_history = sanitize_messages(ceo_chat_history)
         
+        # Санитизируем системное сообщение
+        sanitized_system = {
+            "role": "system",
+            "content": system_message.get("content", "")
+        }
+        
         # Добавляем системное сообщение к истории
-        messages_with_system = [system_message] + sanitized_history + sanitized_messages 
+        messages_with_system = [sanitized_system] + sanitized_history + sanitized_messages 
         messages_with_ceo_chat_history = sanitized_history + sanitized_messages
         print(f"🎯\n\n CEO messages_with_system: {messages_with_system}\n\n")
         print(f"DEBUG: Отправляю {len(messages_with_system)} сообщений в CEO API")
+        
+        # Дополнительная проверка: убеждаемся, что все сообщения содержат только role и content
+        for i, msg in enumerate(messages_with_system):
+            if not isinstance(msg, dict) or "role" not in msg or "content" not in msg:
+                print(f"❌ ОШИБКА: Сообщение {i} не содержит обязательные поля: {msg}")
+                return "❌ Ошибка: некорректный формат сообщения"
+            # Проверяем, что нет лишних полей
+            if len(msg.keys()) > 2:
+                print(f"⚠️ ПРЕДУПРЕЖДЕНИЕ: Сообщение {i} содержит лишние поля: {list(msg.keys())}")
+                # Оставляем только role и content
+                messages_with_system[i] = {
+                    "role": msg["role"],
+                    "content": msg["content"]
+                }
         
         response = await client.chat.completions.create(
             model="openai/gpt-4.1-mini",
