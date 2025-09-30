@@ -491,7 +491,7 @@ async def parsAllCertificates(certificate_names):
             
                 У тебя есть имена сертификата который ввел пользователь: {certificate_names}
                 
-                ВАЖНО: Названия сертификатов могут быть написаны с ошибками или сокращенно!
+                ВАЖНО: Названия сертификатов могут  написаны с ошибками или сокращенно!
                 Ищи ПОХОЖИЕ названия в базе данных, не точные совпадения.
                 
                 Ищи в {json.dumps(resp.json(), indent=2, ensure_ascii=False)}:
@@ -502,6 +502,7 @@ async def parsAllCertificates(certificate_names):
                 2. "3 года вР (46в)" может соответствовать "вР (46в)" в базе  
                 3. "ОПП ИТРб Высота(рабочая, 2гр)" может соответствовать "ОПП ИТР" и "Высота(рабочая, 2гр)" в базе
                 4. Ищи по ключевым словам, не по точному совпадению
+                3. Леса это Высота(рабочая, 2гр)
                 
                 Если информация найдена, заполни соответствующие поля.
                 Если информации нет, оставь "null".
@@ -557,13 +558,13 @@ async def updatePerson(order_json):
     
     try:
         import requests
-        
+         
         # Извлекаем данные из заказа
         employee = order_json.get("employee", {})
         certificate = order_json.get("certificate", [])
         id_certificates = await parsAllCertificates(certificate)
         info(f"Парсим все сертификаты: {id_certificates}")
-        
+
         # Отслеживаем успешно добавленные сертификаты
         added_certificates = []
         existing_certificates = []
@@ -576,7 +577,7 @@ async def updatePerson(order_json):
                     "certificate_id": id_certificate,            # ID типа сертификата (например, "Пожарная безопасность")
                     "assigned_date": "2000-01-01",
                     "certificate_number": "В ожидании",    # Номер сертификата
-                }                
+                }
                 # Очищаем пустые значения
                 api_data = {k: v for k, v in api_data.items() if v and v != "null"}
                 
@@ -595,7 +596,7 @@ async def updatePerson(order_json):
                     json=api_data,
                     timeout=30,  # Увеличиваем таймаут
                     proxies={"http": None, "https": None}
-                )                
+                )
                 if response.status_code == 200 or response.status_code == 201:
                     success(f"Сертификат {id_certificate} успешно добавлен для сотрудника")
                     added_certificates.append(id_certificate)
@@ -604,7 +605,7 @@ async def updatePerson(order_json):
                     info(f"Сертификат {id_certificate} уже привязан к сотруднику - пропускаем")
                     existing_certificates.append(id_certificate)
                 else:
-                    error(f"Ошибка API для сертификата {id_certificate}: {response.status_code} - {response.text}")        
+                    error(f"Ошибка API для сертификата {id_certificate}: {response.status_code} - {response.text}")
         success(f"Все сертификаты обработаны для сотрудника {employee.get('full_name', 'Неизвестно')}")
         info(f"Добавлено новых сертификатов: {len(added_certificates)}, уже существующих: {len(existing_certificates)}")
         
@@ -704,7 +705,7 @@ async def updatePerson(order_json):
         
         log_function_exit("updatePerson", result=f"✅ Сертификаты успешно добавлены для {employee.get('full_name', 'Неизвестно')}")
         return f"✅ Сертификаты успешно добавлены для {employee.get('full_name', 'Неизвестно')}"
-
+            
     except Exception as e:
         error_msg = f"❌ Ошибка при отправке заказа в базу данных: {str(e)}"
         print(error_msg)
@@ -815,7 +816,7 @@ async def updateEmployeeData(order_json):
             error(f"Ошибка API при обновлении: {response.status_code} - {response.text}")
             log_function_exit("updateEmployeeData", error=f"Ошибка API: {response.status_code}")
             return f"❌ Ошибка при обновлении данных: {response.status_code} - {response.text}"
-
+            
     except Exception as e:
         error_msg = f"❌ Ошибка при обновлении данных сотрудника: {str(e)}"
         error(error_msg)
@@ -937,7 +938,7 @@ async def addToDatabase(order_json):
             error(f"Ошибка API: {response.status_code} - {response.text}")
             log_function_exit("addToDatabase", error=f"Ошибка API: {response.status_code} - {response.text}")
             return f"❌ Ошибка при добавлении заказа: {response.status_code} - {response.text}"
-
+            
     except Exception as e:
         error_msg = f"❌ Ошибка при отправке заказа в базу данных: {str(e)}"
         print(error_msg)
@@ -970,7 +971,7 @@ async def order_dispatcher(messages, chat_history):
         if not client:
             log_function_exit("order_dispatcher", error="OpenAI клиент не инициализирован")
             return "❌ Ошибка: OpenAI клиент не инициализирован"
-            
+
         info(f"Отправляю запрос к ИИ (сообщений: {len(messages)})")
         global order_chat_history
         
@@ -1050,7 +1051,7 @@ async def order_dispatcher(messages, chat_history):
             for tool_call in msg.tool_calls:
                 tool_name = tool_call.function.name
                 info(f"Вызываю инструмент: {tool_name}")
-
+                        
                 if tool_name == "makeOrderFormat":
                     # Сформируем заявку
                     try:
@@ -1091,7 +1092,7 @@ async def order_dispatcher(messages, chat_history):
                                         chat_history_order.append({"role": "assistant", "content": json.dumps(formatted_result, ensure_ascii=False)})
                                         log_function_exit("order_dispatcher", result=formatted_result.get("message"))
                                         return formatted_result.get("message")
-
+                                        
                                 except json.JSONDecodeError:
                                     log_function_exit("order_dispatcher", error=f"Ошибка парсинга JSON от clarification: {result}")
                                     return f"❌ Ошибка парсинга JSON от clarification: {result}"
@@ -1128,7 +1129,7 @@ async def order_dispatcher(messages, chat_history):
                     except json.JSONDecodeError:
                         log_function_exit("order_dispatcher", error="Неверные аргументы для makeOrderFormat")
                         return "❌ Ошибка: неверные аргументы для makeOrderFormat"
-
+                        
                 elif tool_name == "clarification":
                     # Уточняем данные
                     try:
@@ -1166,13 +1167,13 @@ async def order_dispatcher(messages, chat_history):
                                     log_function_exit("order_dispatcher", result=formatted_result.get("message"))
                                     return formatted_result.get("message")
                         else:
-
+                        
                             log_function_exit("order_dispatcher", error="Не указаны данные заказа для уточнения")
                             return "❌ Ошибка: не указаны данные заказа для уточнения"
                     except json.JSONDecodeError:
                         log_function_exit("order_dispatcher", error="Неверные аргументы для clarification")
                         return "❌ Ошибка: неверные аргументы для clarification"
-
+                        
                 else:
                     log_function_exit("order_dispatcher", error=f"Неизвестный инструмент: {tool_name}")
                     return f"❌ Неизвестный инструмент: {tool_name}"
@@ -1185,7 +1186,7 @@ async def order_dispatcher(messages, chat_history):
         try:
             # Парсим JSON ответ от ИИ
             response_data = json.loads(msg.content)
-
+            
             # Проверяем, является ли это уточнением данных
             if response_data.get("type") == "clarification":
                 # Это уточнение данных, возвращаем сообщение пользователю
@@ -1204,10 +1205,10 @@ async def order_dispatcher(messages, chat_history):
             # Если это не уточнение, проверяем на новый заказ
             employee_name = response_data.get("employee_name")
             certificate_name = response_data.get("certificate_name")
-
+            
             if employee_name:
                 json_people = await sort_employee(employee_name)
-
+                
                 # Парсим JSON если это строка
                 if isinstance(json_people, str):
                     try:
@@ -1223,7 +1224,7 @@ async def order_dispatcher(messages, chat_history):
                     return f"❌ Сотрудник '{employee_name}' не найден в базе данных"
                 
                 order = await makeOrderFormat(messages, employee_name, certificate_name)
-
+                
                 if order is None:
                     chat_history_order.append({"role": "assistant", "content": "❌ Ошибка: не удалось сформировать заявку"})
                     log_function_exit("order_dispatcher", error="Не удалось сформировать заявку")
@@ -1277,7 +1278,7 @@ async def connect_dispatcher(messages, ceo_chat_history):
         chat_history.extend(chat_history_order)
     
     result = await order_dispatcher(messages, chat_history)
-
+    
     # Анализируем результат и определяем тип
     if isinstance(result, str):
         # Если результат - строка, проверяем содержимое
