@@ -68,9 +68,32 @@ async def ceo_dispatcher(messages):
             """
         }
         print(f"🎯\n\n CEO chat_history: {ceo_chat_history}\n\n")
+        
+        # Санитизация сообщений: убираем поле photo и приводим к правильному формату
+        def sanitize_messages(msgs):
+            sanitized = []
+            for msg in msgs or []:
+                if isinstance(msg, dict):
+                    # Создаем чистый объект только с role и content
+                    clean_msg = {
+                        "role": msg.get("role", "user"),
+                        "content": msg.get("content", "")
+                    }
+                    # Если есть фото, добавляем его в content
+                    if "photo" in msg and msg["photo"]:
+                        clean_msg["content"] += f"\n\n[Фото]: {msg['photo']}"
+                    sanitized.append(clean_msg)
+                else:
+                    sanitized.append({"role": "user", "content": str(msg)})
+            return sanitized
+        
+        # Санитизируем сообщения
+        sanitized_messages = sanitize_messages(messages)
+        sanitized_history = sanitize_messages(ceo_chat_history)
+        
         # Добавляем системное сообщение к истории
-        messages_with_system = [system_message] + ceo_chat_history + messages 
-        messages_with_ceo_chat_history = ceo_chat_history + messages
+        messages_with_system = [system_message] + sanitized_history + sanitized_messages 
+        messages_with_ceo_chat_history = sanitized_history + sanitized_messages
         print(f"🎯\n\n CEO messages_with_system: {messages_with_system}\n\n")
         print(f"DEBUG: Отправляю {len(messages_with_system)} сообщений в CEO API")
         
