@@ -658,50 +658,50 @@ async def updatePerson(order_json):
         except Exception as e:
                 error(f"❌ Ошибка при отправке уведомлений: {e}")
         
-        elif existing_certificates:
-            # Если все сертификаты уже существуют, отправляем уведомление об этом
-            info(f"Все сертификаты уже существуют, отправляем уведомление об этом")
-            
-            # Получаем названия существующих сертификатов для уведомления
-            existing_certificate_names = []
-            for i, cert_id in enumerate(id_certificates):
-                if cert_id in existing_certificates and i < len(certificate):
-                    existing_certificate_names.append(certificate[i])
-            
-            # Создаем специальный order_json для уведомления о существующих сертификатах
-            existing_order_json = order_json.copy()
-            existing_order_json["certificate"] = existing_certificate_names
-            existing_order_json["status"] = "existing_certificates"
-            
-            # Отправляем уведомления о существующих сертификатах
-            try:
-                from bot import send_existing_certificate_notification
-                # Используем существующий event loop или создаем новый
-                try:
-                    loop = asyncio.get_event_loop()
-                    if loop.is_running():
-                        # Если loop уже запущен, создаем задачу
-                        info("Event loop уже запущен, создаем задачу для отправки уведомлений о существующих сертификатах")
-                        asyncio.create_task(send_existing_certificate_notification(existing_order_json))
-                    else:
-                        # Если loop не запущен, запускаем его
-                        info("Event loop не запущен, запускаем его для отправки уведомлений о существующих сертификатах")
-                        loop.run_until_complete(send_existing_certificate_notification(existing_order_json))
-                except RuntimeError:
-                    # Если нет активного loop, создаем новый
-                    info("Создаем новый event loop для отправки уведомлений о существующих сертификатах")
-                    loop = asyncio.new_event_loop()
-                    asyncio.set_event_loop(loop)
-                    try:
-                        loop.run_until_complete(send_existing_certificate_notification(existing_order_json))
-                    finally:
-                        loop.close()
-                info("✅ Уведомления о существующих сертификатах отправлены успешно")
-            except Exception as e:
-                error(f"❌ Ошибка при отправке уведомлений о существующих сертификатах: {e}")
+    elif existing_certificates:
+        # Если все сертификаты уже существуют, отправляем уведомление об этом
+        info(f"Все сертификаты уже существуют, отправляем уведомление об этом")
         
-        else:
-            info("Нет сертификатов для обработки")
+        # Получаем названия существующих сертификатов для уведомления
+        existing_certificate_names = []
+        for i, cert_id in enumerate(id_certificates):
+            if cert_id in existing_certificates and i < len(certificate):
+                existing_certificate_names.append(certificate[i])
+        
+        # Создаем специальный order_json для уведомления о существующих сертификатах
+        existing_order_json = order_json.copy()
+        existing_order_json["certificate"] = existing_certificate_names
+        existing_order_json["status"] = "existing_certificates"
+        
+        # Отправляем уведомления о существующих сертификатах
+        try:
+            from bot import send_existing_certificate_notification
+            # Используем существующий event loop или создаем новый
+            try:
+                loop = asyncio.get_event_loop()
+                if loop.is_running():
+                    # Если loop уже запущен, создаем задачу
+                    info("Event loop уже запущен, создаем задачу для отправки уведомлений о существующих сертификатах")
+                    asyncio.create_task(send_existing_certificate_notification(existing_order_json))
+                else:
+                    # Если loop не запущен, запускаем его
+                    info("Event loop не запущен, запускаем его для отправки уведомлений о существующих сертификатах")
+                    loop.run_until_complete(send_existing_certificate_notification(existing_order_json))
+            except RuntimeError:
+                # Если нет активного loop, создаем новый
+                info("Создаем новый event loop для отправки уведомлений о существующих сертификатах")
+                loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(loop)
+                try:
+                    loop.run_until_complete(send_existing_certificate_notification(existing_order_json))
+                finally:
+                    loop.close()
+            info("✅ Уведомления о существующих сертификатах отправлены успешно")
+        except Exception as e:
+            error(f"❌ Ошибка при отправке уведомлений о существующих сертификатах: {e}")
+    
+    else:
+        info("Нет сертификатов для обработки")
         
         log_function_exit("updatePerson", result=f"✅ Сертификаты успешно добавлены для {employee.get('full_name', 'Неизвестно')}")
         return f"✅ Сертификаты успешно добавлены для {employee.get('full_name', 'Неизвестно')}"
