@@ -549,6 +549,8 @@ def handle_photo_with_text(message):
                     error_msg = f"❌ Ошибка обработки заказа с фото: {str(e)}"
                     error(error_msg)
                     bot.reply_to(message, error_msg)
+                    # Не обрабатываем фото как отдельное сообщение
+                    return
             
             # Запускаем асинхронную обработку
             loop = asyncio.new_event_loop()
