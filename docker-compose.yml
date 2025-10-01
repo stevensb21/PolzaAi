@@ -13,8 +13,7 @@ services:
       - ./images:/app/images
       # Монтируем .env файл
       - ./.env:/app/.env:ro
-    networks:
-      - tetrakomnet
+
     depends_on:
       - redis
     healthcheck:
@@ -30,16 +29,13 @@ services:
     restart: unless-stopped
     volumes:
       - redis_data:/data
-    networks:
-      - tetrakomnet
+
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 30s
       timeout: 10s
       retries: 3
 
-networks:
-  tetrakomnet:
-    external: true
+
 volumes:
   redis_data:

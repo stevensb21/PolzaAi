@@ -7,6 +7,8 @@ from pull_order import connect_dispatcher
 from get_jsonAPIai import connect_search_dispatcher
 from logger import ceo, debug, info, error, critical, search as search_log, order as order_log, log_function_entry, log_function_exit
 from dotenv import load_dotenv
+from ai_request import make_api_request_with_fallback
+from api_settings import PRIORITY_MODEL
 
 load_dotenv()
 
@@ -117,10 +119,13 @@ async def ceo_dispatcher(messages):
                     "content": msg["content"]
                 }
         
-        response = await client.chat.completions.create(
-            model="openai/gpt-4.1-mini",
+        
+
+        response, used_client, used_model = await make_api_request_with_fallback(
+            priority_list=PRIORITY_MODEL,
             messages=messages_with_system,
-            temperature=0.1
+            temperature=0.1,
+            task_name="Конвертация даты"
         )
         
         if not response.choices or not response.choices[0].message:

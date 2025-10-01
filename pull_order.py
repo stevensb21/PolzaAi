@@ -8,7 +8,8 @@ from dateutil.relativedelta import relativedelta
 from get_jsonAPIai import call_external_api, sort_employee
 from dotenv import load_dotenv
 from logger import order, debug, info, error, critical, success, log_function_entry, log_function_exit
-
+from ai_request import make_api_request_with_fallback
+from api_settings import PRIORITY_MODEL
 load_dotenv()
 
 # Инициализация клиента OpenAI с обработкой ошибок
@@ -238,25 +239,24 @@ async def clarification(messages, order_json):
     else:
         info(f"Фото не найдено в сообщении. Текущий order_json: {json.dumps(order_json, indent=2, ensure_ascii=False)}")
     
-    response = await client.chat.completions.create(
-        model="openai/gpt-4.1-mini",
+    
         messages=[
             {"role": "system", "content": f"""Ты — помощник для уточнения данных у пользователя.
                     Вот данные для заказа: {json.dumps(order_json, indent=4, ensure_ascii=False)}
 
                     Твоя задача — уточнить данные у пользователя.
-                    
-                    ВАЖНО: Для существующих сотрудников (id не null) фото НЕ обязательно!
-                    Для новых сотрудников (id = null) фото обязательно!
-                    
-                    Проверь данные в employee:
-                    - Если сотрудник существующий (id не null): проверь только СНИЛС, ИНН, должность, дату рождения, телефон
-                    - Если сотрудник новый (id = null): проверь все поля включая фото
+                
+                ВАЖНО: Для существующих сотрудников (id не null) фото НЕ обязательно!
+                Для новых сотрудников (id = null) фото обязательно!
+                
+                Проверь данные в employee:
+                - Если сотрудник существующий (id не null): проверь только СНИЛС, ИНН, должность, дату рождения, телефон
+                - Если сотрудник новый (id = null): проверь все поля включая фото
                     
                     ВАЖНО: Если в employee есть поле "photo" и оно НЕ равно null, null, "null" или пустой строке, то фото ЕСТЬ!
                     
-                    Если все необходимые данные есть, верни order_json, но измени в нем type на "readyorder".
-                    Если данные неполные, верни order_json, но измени в нем type на "clarification".
+                Если все необходимые данные есть, верни order_json, но измени в нем type на "readyorder".
+                Если данные неполные, верни order_json, но измени в нем type на "clarification".
                     
                     ВАЖНО для статуса:
                     - Если сотрудник новый (id = null) и есть все данные → status = "new_employee"
@@ -284,6 +284,13 @@ async def clarification(messages, order_json):
                     ОБЯЗАТЕЛЬНО: возвращай только order_json, ничего больше и в формате JSON."""},
             {"role": "user", "content": f"Уточни данные у пользователя: {messages}"}
         ]
+    
+
+    response, used_client, used_model = await make_api_request_with_fallback(
+            priority_list=PRIORITY_MODEL,
+            messages=messages,
+            temperature=0.1,
+            task_name="Конвертация даты"
     )
     
     if not response.choices or not response.choices[0].message:
@@ -291,6 +298,7 @@ async def clarification(messages, order_json):
         return "❌ Ошибка: получен пустой ответ от OpenAI API clarification"
     
     msg = response.choices[0].message
+    info(f"Ответ ИИ clarification: f📊 S Использован: {used_client} / {used_model}")
     info(f"Ответ ИИ clarification: {msg.content}")
     
     log_function_exit("clarification", result=msg.content)
@@ -341,7 +349,7 @@ async def format_message(message):
             
             # Формируем список сертификатов с описаниями
             for cert in certificate_details:
-                    new_certificates_text += f"• {cert['name']} - {cert['description']}\n"
+                new_certificates_text += f"• {cert['name']} - {cert['description']}\n"
         except Exception as e:
             error(f"Ошибка при получении описаний сертификатов: {e}")
             new_certificates_text = f"{certificate_names}"
@@ -420,10 +428,13 @@ async def createNewEmployee(employee_name, certificate_name, messages):
         
         info(f"Отправляю запрос к ИИ для анализа истории чата")
         
-        response = await client.chat.completions.create(
-            model="openai/gpt-4.1-mini",
+        
+
+        response, used_client, used_model = await make_api_request_with_fallback(
+            priority_list=PRIORITY_MODEL,
             messages=messages_with_system,
-            temperature=0.1
+            temperature=0.1,
+            task_name="Конвертация даты"
         )
         
         if not response.choices or not response.choices[0].message:
@@ -519,10 +530,13 @@ async def parsAllCertificates(certificate_names):
             
             info(f"Отправляю запрос к ИИ для анализа истории чата")
             
-            response = await client.chat.completions.create(
-                model="openai/gpt-4.1-mini",
+            
+
+            response, used_client, used_model = await make_api_request_with_fallback(
+                    priority_list=PRIORITY_MODEL,
                 messages=messages,
-                temperature=0.1
+                    temperature=0.1,
+                    task_name="Конвертация даты"
             )
             
             # Парсим JSON ответ от ИИ
@@ -585,6 +599,30 @@ async def updatePerson(order_json):
                 
                 # Отправляем POST запрос
                 api_token = os.getenv("API_TOKEN")
+
+                people_data = {
+                    "full_name": employee.get("full_name", ""),
+                    "snils": employee.get("snils", ""),
+                    "inn": employee.get("inn", ""),
+                    "position": employee.get("position", ""),
+                    "birth_date": employee.get("birth_date", ""),
+                    "phone": employee.get("phone", "")
+                }
+                response = requests.post(
+                    f"{BASE_URL}/api/people/{order_json.get('employee', {}).get('id', 'null')}",
+                    headers={
+                        "Content-Type": "application/json",
+                        "Accept": "application/json",
+                        "User-Agent": "PolzaAI-Bot/1.0",
+                        "Authorization": f'Bearer {api_token}'
+                    },
+                    json=people_data,
+                    timeout=1,  # Увеличиваем таймаут
+                    proxies={"http": None, "https": None}
+                )
+
+
+                
                 response = requests.post(
                     f"{BASE_URL}/api/people-certificates",
                     headers={
@@ -594,7 +632,7 @@ async def updatePerson(order_json):
                         "Authorization": f'Bearer {api_token}'
                     },
                     json=api_data,
-                    timeout=30,  # Увеличиваем таймаут
+                    timeout=1,  # Увеличиваем таймаут
                     proxies={"http": None, "https": None}
                 )
                 if response.status_code == 200 or response.status_code == 201:
@@ -639,24 +677,24 @@ async def updatePerson(order_json):
                     loop = asyncio.get_event_loop()
                     if loop.is_running():
                         # Если loop уже запущен, создаем задачу
-                            info("Event loop уже запущен, создаем задачу для отправки уведомлений")
-                            asyncio.create_task(send_ready_order_notification(updated_order_json))
+                                info("Event loop уже запущен, создаем задачу для отправки уведомлений")
+                                asyncio.create_task(send_ready_order_notification(updated_order_json))
                     else:
                         # Если loop не запущен, запускаем его
-                            info("Event loop не запущен, запускаем его для отправки уведомлений")
-                            loop.run_until_complete(send_ready_order_notification(updated_order_json))
+                                info("Event loop не запущен, запускаем его для отправки уведомлений")
+                                loop.run_until_complete(send_ready_order_notification(updated_order_json))
                 except RuntimeError:
                     # Если нет активного loop, создаем новый
                     info("Создаем новый event loop для отправки уведомлений")
                     loop = asyncio.new_event_loop()
                     asyncio.set_event_loop(loop)
                     try:
-                            loop.run_until_complete(send_ready_order_notification(updated_order_json))
+                        loop.run_until_complete(send_ready_order_notification(updated_order_json))
                     finally:
                         loop.close()
                     info("✅ Уведомления отправлены успешно")
             except Exception as e:
-                    error(f"❌ Ошибка при отправке уведомлений: {e}")
+                error(f"❌ Ошибка при отправке уведомлений: {e}")
         
         elif existing_certificates:
             # Если все сертификаты уже существуют, отправляем уведомление об этом
@@ -702,9 +740,9 @@ async def updatePerson(order_json):
         
         else:
             info("Нет сертификатов для обработки")
-            
-            log_function_exit("updatePerson", result=f"✅ Сертификаты успешно добавлены для {employee.get('full_name', 'Неизвестно')}")
-            return f"✅ Сертификаты успешно добавлены для {employee.get('full_name', 'Неизвестно')}"
+        
+        log_function_exit("updatePerson", result=f"✅ Сертификаты успешно добавлены для {employee.get('full_name', 'Неизвестно')}")
+        return f"✅ Сертификаты успешно добавлены для {employee.get('full_name', 'Неизвестно')}"
             
     except Exception as e:
         error_msg = f"❌ Ошибка при отправке заказа в базу данных: {str(e)}"
@@ -754,8 +792,8 @@ async def updateEmployeeData(order_json):
                 "status": "В ожидании"
             }
             
-            # Очищаем пустые значения
-            data = {k: v for k, v in data.items() if v and v != "null"}
+            # Очищаем только None значения, но сохраняем все поля включая пустые строки
+            data = {k: v for k, v in data.items() if v is not None}
             
             # Скачиваем фото и добавляем как файл
             try:
@@ -833,7 +871,10 @@ async def addToDatabase(order_json):
         
         # Извлекаем данные из заказа
         employee = order_json.get("employee", {})
-        
+        print("#########################################################################################")
+        print(f"🚀 employee В addToDatabase для сотрудника c данными: {order_json.get('employee', {}).get('full_name', 'Неизвестно')}")
+        print(f"full_name: {employee.get('full_name', '')}, position: {employee.get('position', '')}, phone: {employee.get('phone', '')}, snils: {employee.get('snils', '')}, inn: {employee.get('inn', '')}, birth_date: {employee.get('birth_date', '')}, status: В ожидании")
+        print("#########################################################################################")
         # Формируем данные для API
         api_data = {
             "full_name": employee.get("full_name", ""),
@@ -843,7 +884,7 @@ async def addToDatabase(order_json):
             "inn": employee.get("inn", ""),
             "birth_date": employee.get("birth_date", ""),
             "status": "В ожидании"
-            # "photo": "@https://us1.api.pro-talk.ru/get_image/fa165d7a-2322-4081-9068-c12ce86a8bf5.jpg"
+            "photo": employee.get("photo", "")
         }
         
         # Сначала создаем сотрудника без фото (используем JSON)
@@ -890,6 +931,31 @@ async def addToDatabase(order_json):
             # Извлекаем ID созданного сотрудника
             info(f"Полный ответ API при создании сотрудника: {people_json}")
             
+            # Проверяем, что все поля сохранились
+            if 'data' in people_json:
+                saved_data = people_json['data']
+                info(f"Сохраненные данные сотрудника:")
+                info(f"  - full_name: {saved_data.get('full_name', 'НЕТ')}")
+                info(f"  - snils: {saved_data.get('snils', 'НЕТ')}")
+                info(f"  - inn: {saved_data.get('inn', 'НЕТ')}")
+                info(f"  - birth_date: {saved_data.get('birth_date', 'НЕТ')}")
+                info(f"  - position: {saved_data.get('position', 'НЕТ')}")
+                info(f"  - phone: {saved_data.get('phone', 'НЕТ')}")
+                
+                # Проверяем, какие поля отсутствуют
+                missing_fields = []
+                if not saved_data.get('snils'):
+                    missing_fields.append('snils')
+                if not saved_data.get('inn'):
+                    missing_fields.append('inn')
+                if not saved_data.get('birth_date'):
+                    missing_fields.append('birth_date')
+                
+                if missing_fields:
+                    error(f"❌ Поля не сохранились в базе: {missing_fields}")
+                else:
+                    success("✅ Все поля успешно сохранены в базе данных")
+            
             # Пробуем разные варианты получения ID
             created_employee_id = people_json.get("id") or people_json.get("data", {}).get("id") or people_json.get("employee", {}).get("id")
             info(f"Создан сотрудник с ID: {created_employee_id}")
@@ -914,15 +980,16 @@ async def addToDatabase(order_json):
                 
                 info(f"order_with_id for updatePerson: {order_with_id}")
                 
-                # Если есть фото, обновляем сотрудника с фото
+                # Принудительно обновляем данные сотрудника, чтобы убедиться, что все поля сохранились
                 photo_url = employee.get("photo")
                 if photo_url and photo_url != "null":
                     info(f"Обновляем сотрудника с фото: {photo_url}")
                     # Добавляем фото в order_with_id
                     order_with_id["employee"]["photo"] = photo_url
-                    
-                    # Обновляем данные сотрудника с фото
-                    await updateEmployeeData(order_with_id)
+                
+                # ВСЕГДА обновляем данные сотрудника после создания, чтобы убедиться в сохранении всех полей
+                info(f"Принудительно обновляем данные сотрудника для сохранения всех полей")
+                await updateEmployeeData(order_with_id)
                 
                 # Вызываем updatePerson для добавления сертификатов
                 await updatePerson(order_with_id)
@@ -1029,13 +1096,14 @@ async def order_dispatcher(messages, chat_history):
         debug(f"Первое сообщение: {messages_with_system[0]}")
         debug(f"Последнее сообщение: {messages_with_system[-1]}")
         
-        response = await client.chat.completions.create(
-            model="openai/gpt-4.1-mini",
-            messages=messages_with_system,
-            tools=tools,
-            tool_choice="auto"
-        )
         
+        response, used_client, used_model = await make_api_request_with_fallback(
+            priority_list=PRIORITY_MODEL,
+            messages=messages_with_system,
+            temperature=0.1,
+            tools=tools,
+            task_name="Конвертация даты"
+        )
         if not response.choices or not response.choices[0].message:
             log_function_exit("order_dispatcher", error="Получен пустой ответ от OpenAI API")
             return "❌ Ошибка: получен пустой ответ от OpenAI API"

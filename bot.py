@@ -131,11 +131,11 @@ async def get_certificate_details(certificate_names):
                                     cert_db_name_lower in cert_name_lower or
                                     any(word in cert_db_name_lower for word in cert_name_lower.split() if len(word) > 2)):
                                     certificate_details.append({
-                                        "name": cert.get("name", cert_name),
-                                        "description": cert.get("description", "Описание отсутствует")
-                                    })
-                                    found = True
-                                    break
+                                    "name": cert.get("name", cert_name),
+                                    "description": cert.get("description", "Описание отсутствует")
+                            })
+                            found = True
+                            break
                     
                     if not found:
                         # Если не найден, добавляем с базовым описанием
