@@ -883,7 +883,7 @@ async def addToDatabase(order_json):
             "snils": employee.get("snils", ""),
             "inn": employee.get("inn", ""),
             "birth_date": employee.get("birth_date", ""),
-            "status": "В ожидании"
+            "status": "В ожидании",
             "photo": employee.get("photo", "")
         }
         
