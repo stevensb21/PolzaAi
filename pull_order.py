@@ -871,11 +871,7 @@ async def addToDatabase(order_json):
         
         # Извлекаем данные из заказа
         employee = order_json.get("employee", {})
-        print("#########################################################################################")
-        print(f"🚀 employee В addToDatabase для сотрудника c данными: {order_json.get('employee', {}).get('full_name', 'Неизвестно')}")
-        print(f"full_name: {employee.get('full_name', '')}, position: {employee.get('position', '')}, phone: {employee.get('phone', '')}, snils: {employee.get('snils', '')}, inn: {employee.get('inn', '')}, birth_date: {employee.get('birth_date', '')}, status: В ожидании")
-        print("#########################################################################################")
-        # Формируем данные для API
+        # Формируем данные для API (без фото - фото добавляется отдельно)
         api_data = {
             "full_name": employee.get("full_name", ""),
             "position": employee.get("position", ""),
@@ -884,7 +880,7 @@ async def addToDatabase(order_json):
             "inn": employee.get("inn", ""),
             "birth_date": employee.get("birth_date", ""),
             "status": "В ожидании",
-            "photo": employee.get("photo", "")
+            "photo": employee.get( '@'+'photo', "")
         }
         
         # Сначала создаем сотрудника без фото (используем JSON)
@@ -972,7 +968,8 @@ async def addToDatabase(order_json):
                         "inn": employee.get("inn", ""),
                         "position": employee.get("position", ""),
                         "birth_date": employee.get("birth_date", ""),
-                        "phone": employee.get("phone", "")
+                        "phone": employee.get("phone", ""),
+                        "photo": employee.get( '@'+'photo', "")
                     },
                     "certificate": order_json.get("certificate", []),
                     "status": "new_employee"
