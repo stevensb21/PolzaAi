@@ -130,7 +130,7 @@ async def allPeople():
         
 
         resp = requests.get(
-            f"{os.getenv("BASE_URL")}/api/people/compact?limit=1000",  # Устанавливаем лимит 1000 для получения всех людей
+            f"{os.getenv('BASE_URL')}/api/people/compact?limit=1000",  # Устанавливаем лимит 1000 для получения всех людей
             timeout=60,  # Увеличиваем таймаут для больших запросов
             proxies={"http": None, "https": None},
             headers=headers
@@ -145,13 +145,13 @@ async def allPeople():
             else:
                 return {
                     "error": "Неверный формат данных",
-                    "details": f"URL: {os.getenv("BASE_URL")}/api/people/compact?limit=1000",
+                    "details": f"URL: {os.getenv('BASE_URL')}/api/people/compact?limit=1000",
                     "response_text": resp.text
                 }
         else:
             return {
                 "error": f"API вернул статус {resp.status_code}",
-                "details": f"URL: {os.getenv("BASE_URL")}/api/people/compact?limit=1000",
+                "details": f"URL: {os.getenv('BASE_URL')}/api/people/compact?limit=1000",
                 "response_text": resp.text
             }
     except Exception as e:
