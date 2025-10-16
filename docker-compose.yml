@@ -6,11 +6,23 @@ services:
     environment:
       - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
       - POLZA_AI_TOKEN=${POLZA_AI_TOKEN}
+      - API_TOKEN=${API_TOKEN}
+      - BASE_URL=${BASE_URL}
+      - VSEGPT_API_KEY=${VSEGPT_API_KEY}
+      - PROXYAPI_API_KEY=${PROXYAPI_API_KEY}
+      - OPENAI_MODEL_POLZA_4_1=${OPENAI_MODEL_POLZA_4_1}
+      - GEMINI_MODEL_POLZA_2_0=${GEMINI_MODEL_POLZA_2_0}
+      - OPENAI_MODEL_VSEGPT=${OPENAI_MODEL_VSEGPT}
+      - GEMINI_MODEL_VSEGPT=${GEMINI_MODEL_VSEGPT}
+      - OPENAI_MODEL_PROXYAPI=${OPENAI_MODEL_PROXYAPI}
+      - GEMINI_MODEL_PROXYAPI=${GEMINI_MODEL_PROXYAPI}
     volumes:
       # Монтируем логи для сохранения
       - ./logs:/app/logs
       # Монтируем изображения для колонтитулов
       - ./images:/app/images
+      # Монтируем настройки уведомлений
+      - ./notification_settings.json:/app/notification_settings.json
       # Монтируем .env файл
       - ./.env:/app/.env:ro
 

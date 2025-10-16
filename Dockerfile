@@ -32,4 +32,4 @@ USER app
 EXPOSE 8000
 
 # Команда по умолчанию
-CMD ["python", "bot.py"]
+CMD ["python", "telegram_bot.py"]
