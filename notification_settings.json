@@ -1,0 +1,152 @@
+{
+  "user_subscriptions": {
+    "8316311496": [
+      "certificate_expiring",
+      "certificate_expired",
+      "employee_registered",
+      "employee_updated"
+    ],
+    "1048507963": [
+      "certificate_expired",
+      "employee_registered",
+      "certificate_expiring",
+      "employee_updated"
+    ]
+  },
+  "user_preferences": {},
+  "system_settings": {
+    "enabled": true,
+    "check_interval": 3600,
+    "max_notifications_per_hour": 10,
+    "retry_attempts": 3
+  },
+  "last_check": null,
+  "notification_history": [
+    {
+      "timestamp": "2025-10-16T11:11:59.646493",
+      "user_id": "1048507963",
+      "notification_type": "employee_registered",
+      "success": true,
+      "error_message": null
+    },
+    {
+      "timestamp": "2025-10-16T11:14:18.224721",
+      "user_id": "8316311496",
+      "notification_type": "employee_updated",
+      "success": true,
+      "error_message": null
+    },
+    {
+      "timestamp": "2025-10-16T11:16:02.601701",
+      "user_id": "8316311496",
+      "notification_type": "employee_registered",
+      "success": true,
+      "error_message": null
+    },
+    {
+      "timestamp": "2025-10-16T11:19:32.324305",
+      "user_id": "8316311496",
+      "notification_type": "employee_registered",
+      "success": true,
+      "error_message": null
+    },
+    {
+      "timestamp": "2025-10-16T11:20:02.972617",
+      "user_id": "8316311496",
+      "notification_type": "employee_registered",
+      "success": true,
+      "error_message": null
+    },
+    {
+      "timestamp": "2025-10-16T11:22:32.399540",
+      "user_id": "8316311496",
+      "notification_type": "employee_registered",
+      "success": true,
+      "error_message": null
+    },
+    {
+      "timestamp": "2025-10-16T11:25:29.792020",
+      "user_id": "8316311496",
+      "notification_type": "employee_registered",
+      "success": true,
+      "error_message": null
+    },
+    {
+      "timestamp": "2025-10-16T11:25:29.892472",
+      "user_id": "1048507963",
+      "notification_type": "employee_registered",
+      "success": true,
+      "error_message": null
+    },
+    {
+      "timestamp": "2025-10-16T11:29:32.293416",
+      "user_id": "8316311496",
+      "notification_type": "employee_registered",
+      "success": true,
+      "error_message": null
+    },
+    {
+      "timestamp": "2025-10-16T11:29:32.425543",
+      "user_id": "1048507963",
+      "notification_type": "employee_registered",
+      "success": true,
+      "error_message": null
+    },
+    {
+      "timestamp": "2025-10-16T11:30:56.228092",
+      "user_id": "8316311496",
+      "notification_type": "employee_registered",
+      "success": true,
+      "error_message": null
+    },
+    {
+      "timestamp": "2025-10-16T11:30:56.422974",
+      "user_id": "1048507963",
+      "notification_type": "employee_registered",
+      "success": true,
+      "error_message": null
+    },
+    {
+      "timestamp": "2025-10-16T12:01:10.574272",
+      "user_id": "8316311496",
+      "notification_type": "employee_registered",
+      "success": true,
+      "error_message": null
+    },
+    {
+      "timestamp": "2025-10-16T12:01:10.709472",
+      "user_id": "1048507963",
+      "notification_type": "employee_registered",
+      "success": true,
+      "error_message": null
+    },
+    {
+      "timestamp": "2025-10-16T12:03:00.761960",
+      "user_id": "8316311496",
+      "notification_type": "employee_registered",
+      "success": true,
+      "error_message": null
+    },
+    {
+      "timestamp": "2025-10-16T12:03:00.893071",
+      "user_id": "1048507963",
+      "notification_type": "employee_registered",
+      "success": true,
+      "error_message": null
+    },
+    {
+      "timestamp": "2025-10-16T12:07:50.716365",
+      "user_id": "8316311496",
+      "notification_type": "employee_registered",
+      "success": true,
+      "error_message": null
+    },
+    {
+      "timestamp": "2025-10-16T12:07:50.949707",
+      "user_id": "1048507963",
+      "notification_type": "employee_registered",
+      "success": true,
+      "error_message": null
+    }
+  ]
+}

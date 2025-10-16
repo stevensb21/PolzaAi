@@ -79,7 +79,7 @@ API_CLIENTS = {
 
 
 # Приоритеты для check_if_protocol (быстрая проверка)
-PRIORITY_MODEL = [
+PROTOCOL_CHECK_PRIORITY = [
     ("polza", "openai"),      # Быстрая и дешевая
     ("proxyapi", "openai"), # Запасной вариант 1
     ("vsegpt", "openai"),     # Запасной вариант 2
@@ -88,3 +88,42 @@ PRIORITY_MODEL = [
     ("vsegpt", "gemini")
 ]
 
+# Приоритеты для process_single_file (детальная обработка)
+PROCESS_FILE_PRIORITY = [
+    ("polza", "gemini"),      # Лучше для vision tasks
+    ("proxyapi", "gemini"),     # Запасной вариант 1
+    ("vsegpt", "gemini"),   # Запасной вариант 2
+    ("polza", "openai"),      # Если gemini не работают
+    ("proxyapi", "openai"),
+    ("vsegpt", "openai")
+]
+
+# Приоритеты для convert_date (конвертация даты)
+DATE_CONVERSION_PRIORITY = [
+    ("polza", "openai"),      # Простая задача, дешевая модель
+    ("proxyapi", "openai"),
+    ("vsegpt", "openai"),
+    ("polza", "gemini"),
+    ("proxyapi", "gemini"),
+    ("vsegpt", "gemini")
+]
+
+# Приоритеты для search_certificates (поиск сертификатов)
+CERTIFICATE_SEARCH_PRIORITY = [
+    ("polza", "openai"),      # Нужна точность
+    ("proxyapi", "openai"),      # Запасной вариант
+    ("vsegpt", "openai"),
+    ("polza", "gemini"),
+    ("proxyapi", "gemini"),
+    ("vsegpt", "gemini")
+]
+
+# Приоритеты для makeOrderformat (форматирование заказа)
+ORDER_FORMAT_PRIORITY = [
+    ("polza", "openai"),      # Нужна точность
+    ("proxyapi", "openai"),      # Запасной вариант
+    ("vsegpt", "openai"),
+    ("polza", "gemini"),
+    ("proxyapi", "gemini"),
+    ("vsegpt", "gemini")
+]

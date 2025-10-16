@@ -7,8 +7,13 @@ from docx.oxml import OxmlElement
 from PIL import Image, ImageDraw, ImageFont
 from datetime import datetime
 
-
-def generate_filename(order_data, certificate_details):
+certificate_details = [
+    {'name': 'ПП', 'description': '«Оказание первой помощи пострадавшим (п.4в Правил)» в объеме 16 часов'}, 
+    {'name': 'БГ', 'description': '"Объединенной Программе обучения безопасным методам и приемам выполнения работ при воздействии вредных и (или) опасных производственных факторов, источников опасности, идентифицированных в рамках специальной оценки условий труда и оценки профессиональных рисков; по использованию (применению) средств индивидуальной защиты для работников рабочих профессий (п.46б, п.4г Правил)" в объеме 24 часа'}, 
+    {'name': 'вР (46в)', 'description': '"Программе обучения безопасным методам и приемам выполнения работ повышенной опасности, к которым предъявляются дополнительные требования в соответствии с нормативными правовыми актами, содержащими государственные нормативные требования охраны труда для работников, непосредственно выполняющих работы повышенной опасности (п.46в Правил)" в объеме 16 часов'},
+    {'name': 'Высота(рабочая, 2гр)', 'description': '«Безопасные методы и приемы выполнения работ на высоте для работников 2-ой группы» в объеме 32 часа'},
+]
+def generate_filename(order_data):
     """Генерирует имя файла по шаблону [дата]-[Фамилия]-[Имя первых двух удостоверений]"""
     # Получаем текущую дату
     current_date = datetime.now().strftime("%d.%m.%Y")
@@ -36,7 +41,8 @@ def generate_filename(order_data, certificate_details):
     return filename
 
 
-def create_tetracom_document(order_data, certificate_details):
+def create_tetracom_document(order_data):
+    global certificate_details
     # Создаем документ
     doc = Document()
     
@@ -177,7 +183,7 @@ def create_tetracom_document(order_data, certificate_details):
 
     # Добавляем информацию о продлении
     for index, certifcate in enumerate(certificate_details, 1):
-        cert = doc.add_paragraph(f'{index}. ' + certifcate['description'] + '\n' + 'следующим работникам:' )
+        cert = doc.add_paragraph(f'{index}. ' + certifcate['name'] + ' - ' + certifcate['description'])
         for run in cert.runs:
             run.font.size = Pt(11)
             run.font.name = 'Calibri'
@@ -185,81 +191,85 @@ def create_tetracom_document(order_data, certificate_details):
         cert.alignment = WD_ALIGN_PARAGRAPH.LEFT
         # Добавляем отступ слева как у параграфа
         cert.paragraph_format.left_indent = Inches(0.3)
+        # Убираем отступы до и после
+        cert.paragraph_format.space_before = Pt(0)
+        cert.paragraph_format.space_after = Pt(0)
         # Настраиваем параграф так, чтобы он не разрывался с таблицей
         cert.paragraph_format.keep_with_next = True
+    doc.add_paragraph('Cледующим работникам:')    
         
         
-        
-        # Создаем таблицу с данными сотрудника
-        table = doc.add_table(rows=2, cols=5)  # 2 строки: заголовок + данные
-        table.style = 'Table Grid'
-        
-        # Запрещаем разрыв между строками таблицы
-        for row in table.rows:
-            tr = row._tr
-            trPr = tr.get_or_add_trPr()
-            cantSplit = OxmlElement('w:cantSplit')
-            trPr.append(cantSplit)
-        
-        
-        # Заголовки таблицы
-        header_cells = table.rows[0].cells
-        headers = ['№ \n', 'ФИО \n', 'Год рождения \n', 'Должность \n', 'СНИЛС \n']
-        
-        for i, header in enumerate(headers):
-            cell = header_cells[i]
-            cell.text = header
-            # Настраиваем шрифт для заголовков
-            for paragraph in cell.paragraphs:
-                for run in paragraph.runs:
-                    run.font.size = Pt(11)
-                    run.font.name = 'Calibri'
-                    run.font.bold = True
-                    run.font.color.rgb = RGBColor(0, 0, 0)
-        
-        # Данные сотрудника
-        data_cells = table.rows[1].cells
-        employee = order_data['employee']
-        
-        # Форматируем дату рождения в полном формате дд.мм.гггг
-        birth_date = employee['birth_date']
-        if birth_date and birth_date != "null":
-            try:
-                # Если дата в формате ISO (1974-12-20T00:00:00.000000Z)
-                if "T" in birth_date:
-                    from datetime import datetime
-                    date_obj = datetime.fromisoformat(birth_date.replace("Z", "+00:00"))
-                    birth_date_formatted = date_obj.strftime("%d.%m.%Y")
-                # Если дата уже в формате дд.мм.гггг
-                elif "." in birth_date and len(birth_date.split(".")) == 3:
-                    birth_date_formatted = birth_date
-                else:
-                    birth_date_formatted = birth_date
-            except Exception as e:
+    # Создаем таблицу с данными сотрудника
+    table = doc.add_table(rows=2, cols=6)  # 2 строки: заголовок + данные
+    table.style = 'Table Grid'
+    
+    # Запрещаем разрыв между строками таблицы
+    for row in table.rows:
+        tr = row._tr
+        trPr = tr.get_or_add_trPr()
+        cantSplit = OxmlElement('w:cantSplit')
+        trPr.append(cantSplit)
+    
+    
+    # Заголовки таблицы
+    header_cells = table.rows[0].cells
+    headers = ['№ \n', 'ФИО \n', 'Год рождения \n', 'Должность \n', 'СНИЛС \n', 'ИНН \n']
+    
+    for i, header in enumerate(headers):
+        cell = header_cells[i]
+        cell.text = header
+        # Настраиваем шрифт для заголовков
+        for paragraph in cell.paragraphs:
+            for run in paragraph.runs:
+                run.font.size = Pt(11)
+                run.font.name = 'Calibri'
+                run.font.bold = True
+                run.font.color.rgb = RGBColor(0, 0, 0)
+    
+    # Данные сотрудника
+    data_cells = table.rows[1].cells
+    employee = order_data['employee']
+    
+    # Форматируем дату рождения в полном формате дд.мм.гггг
+    birth_date = employee['birth_date']
+    if birth_date and birth_date != "null":
+        try:
+            # Если дата в формате ISO (1974-12-20T00:00:00.000000Z)
+            if "T" in birth_date:
+                from datetime import datetime
+                date_obj = datetime.fromisoformat(birth_date.replace("Z", "+00:00"))
+                birth_date_formatted = date_obj.strftime("%d.%m.%Y")
+            # Если дата уже в формате дд.мм.гггг
+            elif "." in birth_date and len(birth_date.split(".")) == 3:
                 birth_date_formatted = birth_date
-        else:
-            birth_date_formatted = "не указана"
-        
-        data = [
-            '1'+'\n',  # №
-            employee['full_name'],  # ФИО
-            birth_date_formatted,  # Полная дата рождения в формате дд.мм.гггг
-            employee['position'],  # Должность
-            employee['snils']  # СНИЛС
-        ]
-        
-        for i, value in enumerate(data):
-            cell = data_cells[i]
-            cell.text = value
-            # Настраиваем шрифт для данных
-            for paragraph in cell.paragraphs:
-                for run in paragraph.runs:
-                    run.font.size = Pt(11)
-                    run.font.name = 'Calibri'
-                    run.font.color.rgb = RGBColor(0, 0, 0)
-        
-        # Добавляем отступ после таблицы
-        doc.add_paragraph('')
+            else:
+                birth_date_formatted = birth_date
+        except Exception as e:
+            birth_date_formatted = birth_date
+    else:
+        birth_date_formatted = "не указана"
+    
+    data = [
+        '1'+'\n',  # №
+        employee['full_name'],  # ФИО
+        birth_date_formatted,  # Полная дата рождения в формате дд.мм.гггг
+        employee['position'],  # Должность
+        employee['snils'],  # СНИЛС
+        employee['inn']  # ИНН
+    ]
+    
+    for i, value in enumerate(data):
+        cell = data_cells[i]
+        cell.text = value
+        # Настраиваем шрифт для данных
+        for paragraph in cell.paragraphs:
+            for run in paragraph.runs:
+                run.font.size = Pt(11)
+                run.font.name = 'Calibri'
+                run.font.color.rgb = RGBColor(0, 0, 0)
+    
+    # Добавляем отступ после таблицы
+    doc.add_paragraph('')
     
     # Добавляем "Директор"
     director_para = doc.add_paragraph('Директор')
@@ -325,22 +335,16 @@ def create_tetracom_document(order_data, certificate_details):
     # -------------------
     # Сохраняем документ
     # -------------------
-    filename = generate_filename(order_data, certificate_details)
+    filename = generate_filename(order_data)
     doc.save(filename)
     print(f"Документ успешно создан: {filename}")
+    return filename
 
 if __name__ == "__main__":
    
     order_data = {'type': 'readyorder', 'employee': {'id': 92, 'full_name':
   'Ахмедшин Альберт Рашитович', 'snils': '079-205-590-83', 'inn': '4949495566', 'position':
   'Монтажник', 'birth_date': '20.12.1974', 'phone': '47484885858859', 'photo':
-  'https://api.telegram.org/file/bot7934916395:AAFKUivVycRo_sf2azOv4oJUVaslRJ1j1YU/photos/file_6.jpg'},
-  'certificate': ['обучение на люльки', 'Первая помощь'], 'status': 'new_employee'}
-    certificate_details = [{'name': 'люльки', 'description': 'Обучение на люльки для монтажников'}, {'name': 'Первая помощь', 'description': 'Оказание первой помощи пострадавшим'}, 
-    {'name': 'обучение на люльки', 'description': 'Обучение на люльки для монтажников'}, {'name': 'Первая помощь', 'description': 'Оказание первой помощи пострадавшим'},
-    {'name': 'обучение на люльки', 'description': 'Обучение на люльки для монтажников'}, {'name': 'Первая помощь', 'description': 'Оказание первой помощи пострадавшим'},
-    {'name': 'обучение на люльки', 'description': 'Обучение на люльки для монтажников'}, {'name': 'Первая помощь', 'description': 'Оказание первой помощи пострадавшим'},
-    {'name': 'обучение на люльки', 'description': 'Обучение на люльки для монтажников'}, {'name': 'Первая помощь', 'description': 'Оказание первой помощи пострадавшим'},
-    {'name': 'обучение на люльки', 'description': 'Обучение на люльки для монтажников'}, {'name': 'Первая помощь', 'description': 'Оказание первой помощи пострадавшим'},
-    {'name': 'обучение на люльки', 'description': 'Обучение на люльки для монтажников'}, {'name': 'Первая помощь', 'description': 'Оказание первой помощи пострадавшим'},]
-    create_tetracom_document(order_data, certificate_details)
+  'https://api.telegram.org/file/bot7934916395:AAFKUivVycRo_sf2azOv4oJUVaslRJ1j1YU/photos/file_6.jpg'}}
+    
+    create_tetracom_document(order_data)

@@ -10,12 +10,10 @@ load_dotenv()
 
 async def make_api_request_with_fallback(
     priority_list,           # Список приоритетов
-    messages,
-    tools=None,              # Сообщения для API
+    messages,                # Сообщения для API
     max_tokens=None,         # Максимум токенов
     temperature=0.1,         # Температура
     task_name="API запрос"  # Название задачи для логов
-
 ):
     """
     Пытается выполнить запрос, перебирая клиенты по приоритету
@@ -47,8 +45,7 @@ async def make_api_request_with_fallback(
                 model=model,
                 messages=messages,
                 max_tokens=max_tokens,
-                temperature=temperature,
-                tools = tools
+                temperature=temperature
             )
             
             print(f"✅ {task_name}: Успешно через {client_name} ({model})")
