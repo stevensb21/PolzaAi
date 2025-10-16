@@ -1,0 +1,162 @@
+2025-09-25 16:35:38 | DEBUG    | logger.py:85 | 🔍 Переменные окружения загружены: True
+2025-09-25 16:35:38 | DEBUG    | logger.py:85 | 🔍 API_TOKEN существует: True
+2025-09-25 16:35:38 | DEBUG    | logger.py:66 | 🚀 Вход в функцию: main
+2025-09-25 16:35:38 | INFO     | logger.py:89 | ℹ️ ✅ Экземпляр бота запущен успешно
+2025-09-25 16:35:39 | INFO     | logger.py:89 | ℹ️ ✅ Webhook удален успешно
+2025-09-26 11:01:51 | DEBUG    | logger.py:66 | 
+  🚀 Вход в функцию: handle_photo_with_text Аргументы: ([<telebot.types.PhotoSize object at
+  0x743c7054c2d0>, <telebot.types.PhotoSize object at 0x743c7054e790>, <telebot.types.PhotoSize object
+  at 0x743c7056b690>, <telebot.types.PhotoSize object at 0x743c7056b050>], 'Мансуров Тимур
+  Аделевич\nСНИЛС 138-816-290 89\nИНН 165506594503\n89625707063\n01.07.1984\nМонтажник\nПрошу обучить
+  на леса')
+2025-09-26 11:01:51 | DEBUG    | logger.py:66 | 
+  🚀 Вход в функцию: handle_photo_with_text Аргументы: ([<telebot.types.PhotoSize object at
+  0x743c7056a950>, <telebot.types.PhotoSize object at 0x743c7056af50>, <telebot.types.PhotoSize object
+  at 0x743c7056b110>, <telebot.types.PhotoSize object at 0x743c70569b90>], None)
+2025-09-26 11:01:51 | INFO     | logger.py:89 | ℹ️ 
+  Получено фото:
+  https://api.telegram.org/file/bot8204433104:AAGTJwvACUkTIMpFLg4_6umMfh-v6cBtcQs/photos/file_27.jpg
+2025-09-26 11:01:51 | INFO     | logger.py:89 | ℹ️ 
+  Обрабатываем заказ с фото: Мансуров Тимур Аделевич СНИЛС 138-816-290 89 ИНН 165506594503 89625707063
+  01.07.1984 Монтажник Прошу обучить на леса
+2025-09-26 11:01:51 | DEBUG    | logger.py:66 | 
+  🚀 Вход в функцию: ceo_dispatcher Аргументы: [{'role': 'user', 'content': 'Мансуров Тимур
+  Аделевич\nСНИЛС 138-816-290 89\nИНН 165506594503\n89625707063\n01.07.1984\nМонтажник\nПрошу обучить
+  на леса', 'photo':
+  'https://api.telegram.org/file/bot8204433104:AAGTJwvACUkTIMpFLg4_6umMfh-v6cBtcQs/photos/file_27.jpg'}]
+2025-09-26 11:01:51 | INFO     | logger.py:89 | ℹ️ 
+  Получено фото:
+  https://api.telegram.org/file/bot8204433104:AAGTJwvACUkTIMpFLg4_6umMfh-v6cBtcQs/photos/file_28.jpg
+2025-09-26 11:01:51 | DEBUG    | logger.py:80 | ✅ Выход из функции handle_photo_with_text
+  Результат: Фото с текстом успешно обработано
+2025-09-26 11:01:51 | DEBUG    | logger.py:66 | 
+  🚀 Вход в функцию: handle_photo_with_text Аргументы: ([<telebot.types.PhotoSize object at
+  0x743c7056b190>, <telebot.types.PhotoSize object at 0x743c7056acd0>, <telebot.types.PhotoSize object
+  at 0x743c7056ac10>, <telebot.types.PhotoSize object at 0x743c70575990>], None)
+2025-09-26 11:01:52 | INFO     | logger.py:89 | ℹ️ 
+  Получено фото:
+  https://api.telegram.org/file/bot8204433104:AAGTJwvACUkTIMpFLg4_6umMfh-v6cBtcQs/photos/file_29.jpg
+2025-09-26 11:01:52 | DEBUG    | logger.py:80 | ✅ Выход из функции handle_photo_with_text
+  Результат: Фото с текстом успешно обработано
+2025-09-26 11:01:52 | DEBUG    | logger.py:66 | 
+  🚀 Вход в функцию: handle_photo_with_text Аргументы: ([<telebot.types.PhotoSize object at
+  0x743c70574b90>, <telebot.types.PhotoSize object at 0x743c70575910>, <telebot.types.PhotoSize object
+  at 0x743c705761d0>, <telebot.types.PhotoSize object at 0x743c705760d0>], None)
+2025-09-26 11:01:52 | INFO     | logger.py:89 | ℹ️ 
+  Получено фото:
+  https://api.telegram.org/file/bot8204433104:AAGTJwvACUkTIMpFLg4_6umMfh-v6cBtcQs/photos/file_30.jpg
+2025-09-26 11:01:52 | DEBUG    | logger.py:80 | ✅ Выход из функции handle_photo_with_text
+  Результат: Фото с текстом успешно обработано
+2025-09-26 11:01:52 | DEBUG    | logger.py:80 | ✅ Выход из функции handle_photo_with_text
+  Результат: Фото с текстом успешно обработано
+2025-09-26 12:01:02 | DEBUG    | logger.py:66 | 
+  🚀 Вход в функцию: handle_photo_with_text Аргументы: ([<telebot.types.PhotoSize object at
+  0x743c7058ce50>, <telebot.types.PhotoSize object at 0x743c70577150>, <telebot.types.PhotoSize object
+  at 0x743c70577b90>, <telebot.types.PhotoSize object at 0x743c7056b110>], 'Егоров Егор
+  Егорович\nСНИЛС 111-111-111-11\nМонтажник\nИНН 00000000000\n02.10.1970\nТелефон 898898989\nпрошу
+  обучить на бг')
+2025-09-26 12:01:02 | DEBUG    | logger.py:66 | 
+  🚀 Вход в функцию: handle_photo_with_text Аргументы: ([<telebot.types.PhotoSize object at
+  0x743c705681d0>, <telebot.types.PhotoSize object at 0x743c7056b490>, <telebot.types.PhotoSize object
+  at 0x743c70569c90>, <telebot.types.PhotoSize object at 0x743c7056ba90>], None)
+2025-09-26 12:01:02 | INFO     | logger.py:89 | ℹ️ 
+  Получено фото:
+  https://api.telegram.org/file/bot8204433104:AAGTJwvACUkTIMpFLg4_6umMfh-v6cBtcQs/photos/file_31.jpg
+2025-09-26 12:01:02 | INFO     | logger.py:89 | ℹ️ 
+  Получено фото:
+  https://api.telegram.org/file/bot8204433104:AAGTJwvACUkTIMpFLg4_6umMfh-v6cBtcQs/photos/file_32.jpg
+2025-09-26 12:01:02 | INFO     | logger.py:89 | ℹ️ 
+  Обрабатываем заказ с фото: Егоров Егор Егорович СНИЛС 111-111-111-11 Монтажник ИНН 00000000000
+  02.10.1970 Телефон 898898989 прошу обучить на бг
+2025-09-26 12:01:02 | DEBUG    | logger.py:66 | 
+  🚀 Вход в функцию: ceo_dispatcher Аргументы: [{'role': 'user', 'content': 'Егоров Егор
+  Егорович\nСНИЛС 111-111-111-11\nМонтажник\nИНН 00000000000\n02.10.1970\nТелефон 898898989\nпрошу
+  обучить на бг', 'photo':
+  'https://api.telegram.org/file/bot8204433104:AAGTJwvACUkTIMpFLg4_6umMfh-v6cBtcQs/photos/file_32.jpg'}]
+2025-09-26 12:01:02 | DEBUG    | logger.py:80 | ✅ Выход из функции handle_photo_with_text
+  Результат: Фото с текстом успешно обработано
+2025-09-26 12:01:02 | DEBUG    | logger.py:66 | 
+  🚀 Вход в функцию: handle_photo_with_text Аргументы: ([<telebot.types.PhotoSize object at
+  0x743c7056b590>, <telebot.types.PhotoSize object at 0x743c7056b4d0>, <telebot.types.PhotoSize object
+  at 0x743c70589510>, <telebot.types.PhotoSize object at 0x743c70589590>], None)
+2025-09-26 12:01:03 | INFO     | logger.py:89 | ℹ️ 
+  Получено фото:
+  https://api.telegram.org/file/bot8204433104:AAGTJwvACUkTIMpFLg4_6umMfh-v6cBtcQs/photos/file_33.jpg
+2025-09-26 12:01:03 | DEBUG    | logger.py:80 | ✅ Выход из функции handle_photo_with_text
+  Результат: Фото с текстом успешно обработано
+2025-09-26 12:01:03 | DEBUG    | logger.py:66 | 
+  🚀 Вход в функцию: handle_photo_with_text Аргументы: ([<telebot.types.PhotoSize object at
+  0x743c70589410>, <telebot.types.PhotoSize object at 0x743c70589210>, <telebot.types.PhotoSize object
+  at 0x743c70589a90>, <telebot.types.PhotoSize object at 0x743c70589a10>], None)
+2025-09-26 12:01:03 | INFO     | logger.py:89 | ℹ️ 
+  Получено фото:
+  https://api.telegram.org/file/bot8204433104:AAGTJwvACUkTIMpFLg4_6umMfh-v6cBtcQs/photos/file_34.jpg
+2025-09-26 12:01:03 | DEBUG    | logger.py:80 | ✅ Выход из функции handle_photo_with_text
+  Результат: Фото с текстом успешно обработано
+2025-09-26 12:01:04 | DEBUG    | logger.py:80 | ✅ Выход из функции handle_photo_with_text
+  Результат: Фото с текстом успешно обработано
+2025-09-26 12:13:41 | DEBUG    | logger.py:66 | 
+  🚀 Вход в функцию: handle_photo_with_text Аргументы: ([<telebot.types.PhotoSize object at
+  0x743c7056bfd0>, <telebot.types.PhotoSize object at 0x743c70569b10>, <telebot.types.PhotoSize object
+  at 0x743c7056be10>, <telebot.types.PhotoSize object at 0x743c705e0a50>], 'Егоров Егор
+  Егорович\nСНИЛС 111-111-111-11\nМонтажник\nИНН 00000000000\n02.10.1970\nТелефон 898898989\nпрошу
+  обучить на бг')
+2025-09-26 12:13:41 | DEBUG    | logger.py:66 | 
+  🚀 Вход в функцию: handle_photo_with_text Аргументы: ([<telebot.types.PhotoSize object at
+  0x743c705e2910>, <telebot.types.PhotoSize object at 0x743c705e0790>, <telebot.types.PhotoSize object
+  at 0x743c705e3e10>, <telebot.types.PhotoSize object at 0x743c705e2410>], None)
+2025-09-26 12:13:42 | INFO     | logger.py:89 | ℹ️ 
+  Получено фото:
+  https://api.telegram.org/file/bot8204433104:AAGTJwvACUkTIMpFLg4_6umMfh-v6cBtcQs/photos/file_32.jpg
+2025-09-26 12:13:42 | INFO     | logger.py:89 | ℹ️ 
+  Обрабатываем заказ с фото: Егоров Егор Егорович СНИЛС 111-111-111-11 Монтажник ИНН 00000000000
+  02.10.1970 Телефон 898898989 прошу обучить на бг
+2025-09-26 12:13:42 | DEBUG    | logger.py:66 | 
+  🚀 Вход в функцию: ceo_dispatcher Аргументы: [{'role': 'user', 'content': 'Егоров Егор
+  Егорович\nСНИЛС 111-111-111-11\nМонтажник\nИНН 00000000000\n02.10.1970\nТелефон 898898989\nпрошу
+  обучить на бг', 'photo':
+  'https://api.telegram.org/file/bot8204433104:AAGTJwvACUkTIMpFLg4_6umMfh-v6cBtcQs/photos/file_32.jpg'}]
+2025-09-26 12:13:42 | INFO     | logger.py:89 | ℹ️ 
+  Получено фото:
+  https://api.telegram.org/file/bot8204433104:AAGTJwvACUkTIMpFLg4_6umMfh-v6cBtcQs/photos/file_31.jpg
+2025-09-26 12:13:42 | DEBUG    | logger.py:80 | ✅ Выход из функции handle_photo_with_text
+  Результат: Фото с текстом успешно обработано
+2025-09-26 12:13:42 | DEBUG    | logger.py:66 | 
+  🚀 Вход в функцию: handle_photo_with_text Аргументы: ([<telebot.types.PhotoSize object at
+  0x743c705e0990>, <telebot.types.PhotoSize object at 0x743c705e0d90>, <telebot.types.PhotoSize object
+  at 0x743c705e32d0>, <telebot.types.PhotoSize object at 0x743c705e0550>], None)
+2025-09-26 12:13:42 | INFO     | logger.py:89 | ℹ️ 
+  Получено фото:
+  https://api.telegram.org/file/bot8204433104:AAGTJwvACUkTIMpFLg4_6umMfh-v6cBtcQs/photos/file_33.jpg
+2025-09-26 12:13:42 | DEBUG    | logger.py:80 | ✅ Выход из функции handle_photo_with_text
+  Результат: Фото с текстом успешно обработано
+2025-09-26 12:13:42 | DEBUG    | logger.py:66 | 
+  🚀 Вход в функцию: handle_photo_with_text Аргументы: ([<telebot.types.PhotoSize object at
+  0x743c7058e150>, <telebot.types.PhotoSize object at 0x743c7058d450>, <telebot.types.PhotoSize object
+  at 0x743c7058e950>, <telebot.types.PhotoSize object at 0x743c7058ea90>], None)
+2025-09-26 12:13:42 | INFO     | logger.py:89 | ℹ️ 
+  Получено фото:
+  https://api.telegram.org/file/bot8204433104:AAGTJwvACUkTIMpFLg4_6umMfh-v6cBtcQs/photos/file_34.jpg
+2025-09-26 12:13:42 | DEBUG    | logger.py:80 | ✅ Выход из функции handle_photo_with_text
+  Результат: Фото с текстом успешно обработано
+2025-09-26 12:13:44 | DEBUG    | logger.py:80 | ✅ Выход из функции handle_photo_with_text
+  Результат: Фото с текстом успешно обработано
+2025-09-26 13:00:57 | DEBUG    | logger.py:66 | 🚀 Вход в функцию: handle_message
+  Аргументы: ('Хижкин',)
+2025-09-26 13:00:57 | INFO     | logger.py:89 | ℹ️ 
+  Добавляем фото в сообщение:
+  https://api.telegram.org/file/bot8204433104:AAGTJwvACUkTIMpFLg4_6umMfh-v6cBtcQs/photos/file_34.jpg
+2025-09-26 13:00:57 | DEBUG    | logger.py:66 | 
+  🚀 Вход в функцию: ceo_dispatcher Аргументы: [{'role': 'user', 'content': 'Хижкин', 'photo':
+  'https://api.telegram.org/file/bot8204433104:AAGTJwvACUkTIMpFLg4_6umMfh-v6cBtcQs/photos/file_34.jpg'}]
+2025-09-26 13:00:59 | DEBUG    | logger.py:80 | ✅ Выход из функции handle_message
+  Результат: Сообщение обработано успешно
+2025-09-26 13:15:25 | DEBUG    | logger.py:66 | 
+  🚀 Вход в функцию: handle_message Аргументы: ('Егоров Егор Егорович\nСНИЛС
+  111-111-111-11\nМонтажник\nИНН 00000000000\n02.10.1970\nТелефон 898898989\nпрошу обучить на бг',)
+2025-09-26 13:15:25 | DEBUG    | logger.py:66 | 
+  🚀 Вход в функцию: ceo_dispatcher Аргументы: [{'role': 'user', 'content': 'Егоров Егор
+  Егорович\nСНИЛС 111-111-111-11\nМонтажник\nИНН 00000000000\n02.10.1970\nТелефон 898898989\nпрошу
+  обучить на бг'}]
+2025-09-26 13:15:27 | DEBUG    | logger.py:80 | ✅ Выход из функции handle_message
+  Результат: Сообщение обработано успешно
