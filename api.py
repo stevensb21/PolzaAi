@@ -259,11 +259,15 @@ async def search_employees(query):
     Returns:
         dict: Найденный сотрудник или None
     """
+    print(f"🔍 search_employees вызвана с запросом: {query}")
     if not query or not query.strip():
+        print("❌ Пустой запрос")
         return None
     
     try:
+        print(f"🔍 Получаем всех сотрудников...")
         employees = await allPeople()
+        print(f"🔍 Получено {len(employees) if employees else 0} сотрудников")
        
         
         if not employees or isinstance(employees, dict) and 'error' in employees:
@@ -271,19 +275,26 @@ async def search_employees(query):
             return None
       
         # Ищем точное совпадение
-        for employee in employees:
+        print(f"🔍 Начинаем поиск среди {len(employees)} сотрудников")
+        for i, employee in enumerate(employees):
             if not isinstance(employee, dict) or 'full_name' not in employee:
+                print(f"🔍 Сотрудник {i}: пропускаем (неверный формат)")
                 continue
-           
-            if fuzzy_search(query, employee['full_name']):
-                
-                print(f"✅ Найден сотрудник: {employee['full_name']}")
+            
+            employee_name = employee.get('full_name', '')
+            print(f"🔍 Проверяем сотрудника {i}: {employee_name}")
+            
+            if fuzzy_search(query, employee_name):
+                print(f"✅ Найден сотрудник: {employee_name}")
                 
                 # Получаем сертификаты сотрудника
                 employee_id = employee.get('id')
+                print(f"🔍 ID сотрудника: {employee_id}")
                 certificates = []
                 if employee_id:
+                    print(f"🔍 Получаем сертификаты для ID: {employee_id}")
                     certificates = await get_employee_certificates(employee_id)
+                    print(f"🔍 Получено сертификатов: {len(certificates)}")
                 
                 # Возвращаем основные поля + сертификаты
                 filtered_employee = {
@@ -298,7 +309,10 @@ async def search_employees(query):
                     'photo': employee.get('photo'),
                     'certificates': certificates
                 }
+                print(f"🔍 Возвращаем сотрудника: {filtered_employee}")
                 return filtered_employee
+            else:
+                print(f"🔍 Сотрудник {i}: не подходит")
         
        
         
