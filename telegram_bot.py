@@ -489,12 +489,16 @@ async def handle_message(message: Message):
         
         if is_only_name:
             logger.info(f"Сообщение содержит только ФИО, принудительно направляем на поиск: {employee_name}")
+            print(f"🔍 Вызываем handle_search_request для: {employee_name}")
             response = await handle_search_request(employee_name, user_id)
+            print(f"🔍 Результат handle_search_request: {response[:100]}...")
         else:
             if intent == "search_info":
                 # Пользователь хочет просто посмотреть информацию
                 logger.info(f"Обрабатываем запрос на поиск информации для: {employee_name}")
+                print(f"🔍 Вызываем handle_search_request для: {employee_name}")
                 response = await handle_search_request(employee_name, user_id)
+                print(f"🔍 Результат handle_search_request: {response[:100]}...")
                 
             elif intent == "create_order":
                 # Проверяем, есть ли в сообщении дополнительные данные кроме ФИО
