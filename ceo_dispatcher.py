@@ -139,6 +139,7 @@ async def handle_search_request(employee_name, user_id):
         str: Форматированный ответ с информацией о сотруднике
     """
     try:
+        print(f"🔍 ===== НАЧАЛО handle_search_request =====")
         print(f"🔍 Начинаем поиск сотрудника: {employee_name}")
         from api import search_employees
         
@@ -194,9 +195,11 @@ async def handle_search_request(employee_name, user_id):
 {certificates_info}
 """
         
+        print(f"🔍 ===== КОНЕЦ handle_search_request =====")
         return response
         
     except Exception as e:
+        print(f"🔍 ===== ОШИБКА в handle_search_request: {e} =====")
         return f"❌ <b>Ошибка при поиске сотрудника:</b> {e}"
 
 async def format_certificates_info(certificates):
