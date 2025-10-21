@@ -285,11 +285,7 @@ async def search_employees(query):
                 
                 # Получаем сертификаты сотрудника
                 employee_id = employee.get('id')
-                certificates = []
-                if employee_id:
-                    print(f"🔍 Получаем сертификаты для ID: {employee_id}")
-                    certificates = await get_employee_certificates(employee_id)
-                    print(f"🔍 Получено сертификатов: {len(certificates)}")
+                
                 
                 # Возвращаем основные поля + сертификаты
                 filtered_employee = {
@@ -302,7 +298,7 @@ async def search_employees(query):
                     'inn': employee.get('inn'),
                     'birth_date': employee.get('birth_date'),
                     'photo': employee.get('photo'),
-                    'certificates': certificates
+                    'certificates': employee.get('all_certificates')
                 }
                 return filtered_employee
         

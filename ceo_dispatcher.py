@@ -127,7 +127,7 @@ async def ceo_dispatcher(message_text, chat_history=None):
             "message": f"❌ Ошибка CEO диспетчера: {e}"
         }
 
-async def handle_search_request(employee_name, user_id):
+async def handle_search_request(employee_name):
     """
     Обрабатывает запрос на поиск информации о сотруднике
     
@@ -145,7 +145,7 @@ async def handle_search_request(employee_name, user_id):
         
         # Ищем сотрудника
         employee = await search_employees(employee_name)
-        print(f"🔍 Результат поиска: {'найден' if employee else 'не найден'}")
+        print(f"🔍 Результат поиска: {employee}")
         
         if not employee:
             return f"❌ <b>Сотрудник не найден</b>\n\nПо запросу '{employee_name}' ничего не найдено.\n\nПопробуйте:\n• Проверить правильность написания ФИО\n• Использовать частичное совпадение имени"
@@ -227,51 +227,76 @@ async def format_certificates_info(certificates):
         if not isinstance(cert, dict):
             continue
             
-        cert_name = cert.get('certificate_name', 'Неизвестное удостоверение')
-        cert_number = cert.get('certificate_number', 'Без номера')
-        assigned_date = cert.get('assigned_date', '')
-        expiry_date = cert.get('expiry_date', '')
+        cert_name = cert.get('name', 'Неизвестное удостоверение')
+        cert_id = cert.get('id', 'Без номера')
+        assigned_data = cert.get('assigned_data', {})
+        assigned_date = assigned_data.get('assigned_date', '') if assigned_data else ''
+        status = assigned_data.get('status', 1) if assigned_data else 1  # По умолчанию status = 1 (отсутствует)
         
-        # Пропускаем сертификаты без даты истечения
-        if not expiry_date or expiry_date == 'null' or expiry_date == '':
+        # Обрабатываем сертификаты в зависимости от статуса
+        print(f"🔍 Сертификат {cert_name}: status={status}")
+        if status == 1:
+            # Отсутствует - пропускаем
+            print(f"🔍 Пропускаем {cert_name} (отсутствует)")
             continue
-            
-        try:
-            # Парсим дату истечения
-            if "T" in str(expiry_date):
-                expiry_dt = datetime.fromisoformat(str(expiry_date).replace("Z", "+00:00"))
-            else:
-                expiry_dt = datetime.strptime(str(expiry_date), "%Y-%m-%d")
-            
-            # Определяем статус сертификата
-            if expiry_dt < now:
-                # Просрочен
-                expired_certificates.append({
-                    'name': cert_name,
-                    'number': cert_number,
-                    'expiry_date': expiry_dt.strftime("%d.%m.%Y"),
-                    'days_overdue': (now - expiry_dt).days
-                })
-            elif expiry_dt <= now + timedelta(days=30):
-                # Скоро истекает (в течение 30 дней)
-                expiring_certificates.append({
-                    'name': cert_name,
-                    'number': cert_number,
-                    'expiry_date': expiry_dt.strftime("%d.%m.%Y"),
-                    'days_remaining': (expiry_dt - now).days
-                })
-            else:
-                # Действует
-                valid_certificates.append({
-                    'name': cert_name,
-                    'number': cert_number,
-                    'expiry_date': expiry_dt.strftime("%d.%m.%Y"),
-                    'days_remaining': (expiry_dt - now).days
-                })
-                
-        except Exception as e:
-            print(f"❌ Ошибка при обработке сертификата {cert_name}: {e}")
-            continue
+        elif status == 2:
+            # Просрочен
+            print(f"🔍 Обрабатываем {cert_name} как просроченный")
+            try:
+                if assigned_date and assigned_date != 'null' and assigned_date != '':
+                    if "T" in str(assigned_date):
+                        assigned_dt = datetime.fromisoformat(str(assigned_date).replace("Z", "+00:00"))
+                    else:
+                        assigned_dt = datetime.strptime(str(assigned_date), "%Y-%m-%d")
+                    
+                    # Вычисляем дату истечения (обычно через 3 года)
+                    expiry_dt = assigned_dt + timedelta(days=3*365)
+                    
+                    expired_certificates.append({
+                        'name': cert_name,
+                        'assigned_date': assigned_date
+                    })
+            except Exception as e:
+                print(f"❌ Ошибка при обработке просроченного сертификата {cert_name}: {e}")
+                continue
+        elif status == 3:
+            # Скоро просрочится
+            print(f"🔍 Обрабатываем {cert_name} как скоро истекающий")
+            try:
+                if assigned_date and assigned_date != 'null' and assigned_date != '':
+                    if "T" in str(assigned_date):
+                        assigned_dt = datetime.fromisoformat(str(assigned_date).replace("Z", "+00:00"))
+                    else:
+                        assigned_dt = datetime.strptime(str(assigned_date), "%Y-%m-%d")
+                    
+                    # Вычисляем дату истечения (обычно через 3 года)
+                    expiry_dt = assigned_dt + timedelta(days=3*365)
+                    
+                    expiring_certificates.append({
+                        'name': cert_name,
+                        'assigned_date': assigned_date
+                    })
+            except Exception as e:
+                print(f"❌ Ошибка при обработке истекающего сертификата {cert_name}: {e}")
+                continue
+        elif status == 4:
+            # Действует
+            print(f"🔍 Обрабатываем {cert_name} как действующий")
+            try:
+                if assigned_date and assigned_date != 'null' and assigned_date != '':
+                    if "T" in str(assigned_date):
+                        assigned_dt = datetime.fromisoformat(str(assigned_date).replace("Z", "+00:00"))
+                    else:
+                        assigned_dt = datetime.strptime(str(assigned_date), "%Y-%m-%d")
+                    
+                    
+                    valid_certificates.append({
+                        'name': cert_name,
+                        'assigned_date': assigned_date
+                    })
+            except Exception as e:
+                print(f"❌ Ошибка при обработке действующего сертификата {cert_name}: {e}")
+                continue
     
     # Формируем текст
     result = "📜 <b>Удостоверения:</b>\n"
@@ -279,19 +304,32 @@ async def format_certificates_info(certificates):
     if expired_certificates:
         result += "\n❌ <b>Просроченные:</b>\n"
         for cert in expired_certificates:
-            result += f"• {cert['name']} №{cert['number']} (до {cert['expiry_date']}, просрочен на {cert['days_overdue']} дн.)\n"
+            result += f"• {cert['name']} (получен: {cert['assigned_date']})\n"
     
     if expiring_certificates:
         result += "\n⚠️ <b>Скоро истекают:</b>\n"
         for cert in expiring_certificates:
-            result += f"• {cert['name']} №{cert['number']} (до {cert['expiry_date']}, осталось {cert['days_remaining']} дн.)\n"
+            result += f"• {cert['name']} (получен: {cert['assigned_date']})\n"
     
     if valid_certificates:
         result += "\n✅ <b>Действующие:</b>\n"
         for cert in valid_certificates:
-            result += f"• {cert['name']} №{cert['number']} (до {cert['expiry_date']}, осталось {cert['days_remaining']} дн.)\n"
+            result += f"• {cert['name']} (получен: {cert['assigned_date']})\n"
     
     if not expired_certificates and not expiring_certificates and not valid_certificates:
         result += "Нет удостоверений с указанными датами истечения"
     
     return result
+
+
+# async def main():
+#     # text = 'Пахрудинов Ахмед Давудович'
+#     text = 'Мухаметханов Ленар Гаптерафикович'
+
+#     result = await ceo_dispatcher(text)
+
+#     print(result)
+#     result = await handle_search_request(text)
+#     print(result)
+# if __name__ == "__main__":
+#     asyncio.run(main())
