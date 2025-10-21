@@ -490,14 +490,14 @@ async def handle_message(message: Message):
         if is_only_name:
             logger.info(f"Сообщение содержит только ФИО, принудительно направляем на поиск: {employee_name}")
             print(f"🔍 Вызываем handle_search_request для: {employee_name}")
-            response = await handle_search_request(employee_name, user_id)
+            response = await handle_search_request(employee_name)
             print(f"🔍 Результат handle_search_request: {response[:100]}...")
         else:
             if intent == "search_info":
                 # Пользователь хочет просто посмотреть информацию
                 logger.info(f"Обрабатываем запрос на поиск информации для: {employee_name}")
                 print(f"🔍 Вызываем handle_search_request для: {employee_name}")
-                response = await handle_search_request(employee_name, user_id)
+                response = await handle_search_request(employee_name)
                 print(f"🔍 Результат handle_search_request: {response[:100]}...")
                 
             elif intent == "create_order":
@@ -512,7 +512,7 @@ async def handle_message(message: Message):
                 if not has_additional_data and confidence < 0.8:
                     # Если нет дополнительных данных и низкая уверенность, перенаправляем на поиск
                     logger.info(f"CEO определил как create_order, но нет дополнительных данных. Перенаправляем на поиск: {employee_name}")
-                    response = await handle_search_request(employee_name, user_id)
+                    response = await handle_search_request(employee_name)
                 else:
                     # Пользователь хочет создать заявку на обучение
                     logger.info(f"Обрабатываем запрос на создание заявки для: {employee_name}")
