@@ -189,6 +189,53 @@ def fuzzy_search(query, target_text):
     
     return False
 
+async def get_employee_certificates(employee_id):
+    """
+    Получает сертификаты сотрудника
+    
+    Args:
+        employee_id: ID сотрудника
+    
+    Returns:
+        list: Список сертификатов или None
+    """
+    try:
+        api_token = os.getenv("API_TOKEN")
+        
+        if not api_token:
+            print("❌ API_TOKEN не найден")
+            return None
+        
+        headers = {
+            'User-Agent': 'PolzaAI-Bot/1.0',
+            'Authorization': f'Bearer {api_token}'
+        }
+        
+        resp = requests.get(
+            f"{os.getenv('BASE_URL')}/api/people/{employee_id}",
+            timeout=30,
+            proxies={"http": None, "https": None},
+            headers=headers
+        )
+        
+        if resp.status_code == 200:
+            data = resp.json()
+            if isinstance(data, dict) and 'data' in data:
+                employee_data = data['data']
+                certificates = employee_data.get('all_certificates', [])
+                print(f"✅ Получено {len(certificates)} сертификатов для сотрудника {employee_id}")
+                return certificates
+            else:
+                print(f"❌ Неверный формат данных для сотрудника {employee_id}")
+                return []
+        else:
+            print(f"❌ Ошибка API при получении сертификатов: {resp.status_code}")
+            return []
+            
+    except Exception as e:
+        print(f"❌ Ошибка при получении сертификатов: {e}")
+        return []
+
 async def search_employees(query):
     """
     Улучшенный поиск сотрудников с нормализацией текста
@@ -218,7 +265,14 @@ async def search_employees(query):
             if fuzzy_search(query, employee['full_name']):
                 
                 print(f"✅ Найден сотрудник: {employee['full_name']}")
-                # Возвращаем только основные поля, исключая all_certificates
+                
+                # Получаем сертификаты сотрудника
+                employee_id = employee.get('id')
+                certificates = []
+                if employee_id:
+                    certificates = await get_employee_certificates(employee_id)
+                
+                # Возвращаем основные поля + сертификаты
                 filtered_employee = {
                     'id': employee.get('id'),
                     'full_name': employee.get('full_name'),
@@ -228,7 +282,8 @@ async def search_employees(query):
                     'snils': employee.get('snils'),
                     'inn': employee.get('inn'),
                     'birth_date': employee.get('birth_date'),
-                    'photo': employee.get('photo')
+                    'photo': employee.get('photo'),
+                    'certificates': certificates
                 }
                 return filtered_employee
         

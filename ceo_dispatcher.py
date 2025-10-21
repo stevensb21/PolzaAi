@@ -156,6 +156,7 @@ async def handle_search_request(employee_name, user_id):
         birth_date = employee.get('birth_date', 'Не указана')
         status = employee.get('status', 'Не указан')
         employee_id = employee.get('id', 'Не указан')
+        certificates = employee.get('certificates', [])
         
         # Форматируем дату рождения
         if birth_date and birth_date != 'Не указана':
@@ -173,6 +174,9 @@ async def handle_search_request(employee_name, user_id):
         else:
             formatted_date = "Не указана"
         
+        # Форматируем информацию о сертификатах
+        certificates_info = await format_certificates_info(certificates)
+        
         response = f"""
 🔍 <b>Информация о сотруднике</b>
 
@@ -184,9 +188,104 @@ async def handle_search_request(employee_name, user_id):
 📅 <b>Дата рождения:</b> {formatted_date}
 📊 <b>Статус:</b> {status}
 🆔 <b>ID:</b> {employee_id}
+
+{certificates_info}
 """
         
         return response
         
     except Exception as e:
         return f"❌ <b>Ошибка при поиске сотрудника:</b> {e}"
+
+async def format_certificates_info(certificates):
+    """
+    Форматирует информацию о сертификатах сотрудника
+    
+    Args:
+        certificates: Список сертификатов
+    
+    Returns:
+        str: Форматированная информация о сертификатах
+    """
+    if not certificates:
+        return "📜 <b>Удостоверения:</b> Нет действующих удостоверений"
+    
+    from datetime import datetime, timedelta
+    
+    now = datetime.now()
+    expired_certificates = []
+    expiring_certificates = []
+    valid_certificates = []
+    
+    for cert in certificates:
+        if not isinstance(cert, dict):
+            continue
+            
+        cert_name = cert.get('certificate_name', 'Неизвестное удостоверение')
+        cert_number = cert.get('certificate_number', 'Без номера')
+        assigned_date = cert.get('assigned_date', '')
+        expiry_date = cert.get('expiry_date', '')
+        
+        # Пропускаем сертификаты без даты истечения
+        if not expiry_date or expiry_date == 'null' or expiry_date == '':
+            continue
+            
+        try:
+            # Парсим дату истечения
+            if "T" in str(expiry_date):
+                expiry_dt = datetime.fromisoformat(str(expiry_date).replace("Z", "+00:00"))
+            else:
+                expiry_dt = datetime.strptime(str(expiry_date), "%Y-%m-%d")
+            
+            # Определяем статус сертификата
+            if expiry_dt < now:
+                # Просрочен
+                expired_certificates.append({
+                    'name': cert_name,
+                    'number': cert_number,
+                    'expiry_date': expiry_dt.strftime("%d.%m.%Y"),
+                    'days_overdue': (now - expiry_dt).days
+                })
+            elif expiry_dt <= now + timedelta(days=30):
+                # Скоро истекает (в течение 30 дней)
+                expiring_certificates.append({
+                    'name': cert_name,
+                    'number': cert_number,
+                    'expiry_date': expiry_dt.strftime("%d.%m.%Y"),
+                    'days_remaining': (expiry_dt - now).days
+                })
+            else:
+                # Действует
+                valid_certificates.append({
+                    'name': cert_name,
+                    'number': cert_number,
+                    'expiry_date': expiry_dt.strftime("%d.%m.%Y"),
+                    'days_remaining': (expiry_dt - now).days
+                })
+                
+        except Exception as e:
+            print(f"❌ Ошибка при обработке сертификата {cert_name}: {e}")
+            continue
+    
+    # Формируем текст
+    result = "📜 <b>Удостоверения:</b>\n"
+    
+    if expired_certificates:
+        result += "\n❌ <b>Просроченные:</b>\n"
+        for cert in expired_certificates:
+            result += f"• {cert['name']} №{cert['number']} (до {cert['expiry_date']}, просрочен на {cert['days_overdue']} дн.)\n"
+    
+    if expiring_certificates:
+        result += "\n⚠️ <b>Скоро истекают:</b>\n"
+        for cert in expiring_certificates:
+            result += f"• {cert['name']} №{cert['number']} (до {cert['expiry_date']}, осталось {cert['days_remaining']} дн.)\n"
+    
+    if valid_certificates:
+        result += "\n✅ <b>Действующие:</b>\n"
+        for cert in valid_certificates:
+            result += f"• {cert['name']} №{cert['number']} (до {cert['expiry_date']}, осталось {cert['days_remaining']} дн.)\n"
+    
+    if not expired_certificates and not expiring_certificates and not valid_certificates:
+        result += "Нет удостоверений с указанными датами истечения"
+    
+    return result
