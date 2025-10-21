@@ -220,13 +220,11 @@ async def get_employee_certificates(employee_id):
         
         if resp.status_code == 200:
             data = resp.json()
-            print(f"🔍 Полный ответ API для сотрудника {employee_id}: {data}")
             if isinstance(data, dict) and 'data' in data:
                 employee_data = data['data']
                 print(f"🔍 Структура данных сотрудника: {list(employee_data.keys())}")
                 certificates = employee_data.get('all_certificates', [])
                 print(f"✅ Получено {len(certificates)} сертификатов для сотрудника {employee_id}")
-                print(f"🔍 Сертификаты: {certificates}")
                 
                 # Проверяем другие возможные поля для сертификатов
                 if not certificates:
@@ -278,18 +276,15 @@ async def search_employees(query):
         print(f"🔍 Начинаем поиск среди {len(employees)} сотрудников")
         for i, employee in enumerate(employees):
             if not isinstance(employee, dict) or 'full_name' not in employee:
-                print(f"🔍 Сотрудник {i}: пропускаем (неверный формат)")
                 continue
             
             employee_name = employee.get('full_name', '')
-            print(f"🔍 Проверяем сотрудника {i}: {employee_name}")
             
             if fuzzy_search(query, employee_name):
                 print(f"✅ Найден сотрудник: {employee_name}")
                 
                 # Получаем сертификаты сотрудника
                 employee_id = employee.get('id')
-                print(f"🔍 ID сотрудника: {employee_id}")
                 certificates = []
                 if employee_id:
                     print(f"🔍 Получаем сертификаты для ID: {employee_id}")
@@ -309,10 +304,7 @@ async def search_employees(query):
                     'photo': employee.get('photo'),
                     'certificates': certificates
                 }
-                print(f"🔍 Возвращаем сотрудника: {filtered_employee}")
                 return filtered_employee
-            else:
-                print(f"🔍 Сотрудник {i}: не подходит")
         
        
         
