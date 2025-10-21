@@ -220,16 +220,20 @@ async def get_employee_certificates(employee_id):
         
         if resp.status_code == 200:
             data = resp.json()
+            print(f"🔍 Полный ответ API для сотрудника {employee_id}: {data}")
             if isinstance(data, dict) and 'data' in data:
                 employee_data = data['data']
                 certificates = employee_data.get('all_certificates', [])
                 print(f"✅ Получено {len(certificates)} сертификатов для сотрудника {employee_id}")
+                print(f"🔍 Сертификаты: {certificates}")
                 return certificates
             else:
                 print(f"❌ Неверный формат данных для сотрудника {employee_id}")
+                print(f"🔍 Структура данных: {data}")
                 return []
         else:
             print(f"❌ Ошибка API при получении сертификатов: {resp.status_code}")
+            print(f"🔍 Ответ сервера: {resp.text}")
             return []
             
     except Exception as e:
