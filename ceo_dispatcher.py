@@ -4,7 +4,7 @@ import asyncio
 from openai import AsyncOpenAI
 from dotenv import load_dotenv
 from ai_request import make_api_request_with_fallback
-from api_settings import PRIORITY_MODEL
+from api_settings import ORDER_FORMAT_PRIORITY
 
 load_dotenv()
 
@@ -81,7 +81,7 @@ async def ceo_dispatcher(message_text, chat_history=None):
     
     try:
         response, used_client, used_model = await make_api_request_with_fallback(
-            priority_list=PRIORITY_MODEL,
+            priority_list=ORDER_FORMAT_PRIORITY,
             messages=messages,
             temperature=0.1,
             task_name="CEO диспетчер"
