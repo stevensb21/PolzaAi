@@ -223,9 +223,18 @@ async def get_employee_certificates(employee_id):
             print(f"🔍 Полный ответ API для сотрудника {employee_id}: {data}")
             if isinstance(data, dict) and 'data' in data:
                 employee_data = data['data']
+                print(f"🔍 Структура данных сотрудника: {list(employee_data.keys())}")
                 certificates = employee_data.get('all_certificates', [])
                 print(f"✅ Получено {len(certificates)} сертификатов для сотрудника {employee_id}")
                 print(f"🔍 Сертификаты: {certificates}")
+                
+                # Проверяем другие возможные поля для сертификатов
+                if not certificates:
+                    print(f"🔍 Проверяем другие поля для сертификатов...")
+                    for key in employee_data.keys():
+                        if 'certificate' in key.lower() or 'удостоверение' in key.lower():
+                            print(f"🔍 Найдено поле {key}: {employee_data[key]}")
+                
                 return certificates
             else:
                 print(f"❌ Неверный формат данных для сотрудника {employee_id}")
